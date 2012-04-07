@@ -1,0 +1,28 @@
+{
+  "name": "ots",
+  "version": "0.1.0",
+  "description": "Aliyun OTS(Open Table Service) Nodejs SDK. http://ots.aliyun.com/",
+  "keywords": [ "ots", "aliyun", "database", "nosql" ],
+  "author": "fengmk2 <fengmk2@gmail.com> (http://github.com/fengmk2)",
+  "homepage": "http://github.com/fengmk2/ots",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/fengmk2/ots.git"
+  },
+  "scripts": {
+    "test": "make test"
+  },
+  "dependencies": {
+    "urllib": ">=0.2.4",
+    "xml2json": ">=0.2.4"
+  },
+  "devDependencies": {
+    "should": ">=0.4.2",
+    "mocha": ">=0.13.0"
+  },
+  "license": "MIT",
+  "engines": { 
+    "node": ">= 0.6.7" 
+  }
+}
