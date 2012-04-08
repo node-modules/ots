@@ -8,23 +8,53 @@
  * Module dependencies.
  */
 
-var Client = require('../lib/client');
+var ots = require('../');
 var should = require('should');
 var config = require('./config.json')
+var EventProxy = require('eventproxy').EventProxy;
+var crypto = require('crypto');
+
+
+function md5(s) {
+  var hash = crypto.createHash('md5');
+  hash.update(s);
+  return hash.digest('hex');
+}
 
 describe('client.test.js', function() {
-  var client = new Client({
-    AccessID: config.AccessID,
-    AccessKey: config.AccessKey,
+  var client = ots.createClient({
+    accessID: config.accessID,
+    accessKey: config.accessKey,
   });
 
   before(function(done) {
-    // ensure "test" table delete
+    var ep = EventProxy.create('testgroup', 'test', 'testuser', 'testurl', function() {
+      done();
+    });
+    client.deleteTableGroup('testgroup', function(err) {
+      ep.emit('testgroup');
+    });
     client.deleteTable('test', function(err) {
-      if (err && err.name === 'OTSStorageObjectNotExist') {
-        err = null;
-      }
-      done(err);
+      ep.emit('test');
+    });
+    client.createTable({
+      TableName: 'testuser',
+      PrimaryKey: [
+        { 'Name': 'uid', 'Type': 'STRING' },
+        { 'Name': 'firstname', 'Type': 'STRING' },
+      ],
+      PagingKeyLen: 1,
+    }, function(err, result) {
+      ep.emit('testuser')
+    });
+    client.createTable({
+      TableName: 'testurl',
+      PrimaryKey: [
+        { 'Name': 'md5', 'Type': 'STRING' },
+      ],
+      PagingKeyLen: 0,
+    }, function(err, result) {
+      ep.emit('testurl')
     });
   });
 
@@ -47,6 +77,40 @@ describe('client.test.js', function() {
     ];
     var params = client.signature('/CreateTable', params);
     params.join('&').should.include('&Signature=');
+  });
+
+  describe('#createTableGroup()', function() {
+    it('should create a group', function(done) {
+      client.createTableGroup('testgroup', 'STRING', function(err, result) {
+        should.not.exist(err);
+        done();
+      });
+    });
+  });
+
+  describe('#listTableGroup()', function() {
+    it('should list all groups', function(done) {
+      client.listTableGroup(function(err, groups) {
+        should.not.exist(err);
+        groups.should.be.an.instanceof(Array);
+        groups.length.should.above(0);
+        groups.should.include('testgroup');
+        done();
+      });
+    });
+  });
+
+  describe('#deleteTableGroup()', function() {
+    it('should delete a group', function(done) {
+      client.deleteTableGroup('testgroup', function(err, result) {
+        should.not.exist(err);
+        client.deleteTableGroup('testgroup', function(err, result) {
+          should.exist(err);
+          err.name.should.equal('OTSStorageObjectNotExist');
+          done();
+        });
+      });
+    });
   });
 
   describe('#createTable()', function() {
@@ -141,11 +205,73 @@ describe('client.test.js', function() {
 
   });
 
+  var transactionID = null;
+  describe('#startTransaction()', function() {
+    it('should start and get a transaction id', function(done) {
+      client.startTransaction('user', 'foo', function(err, tid) {
+        should.not.exist(err);
+        tid.should.be.a('string');
+        transactionID = tid;
+        done();
+      });
+    });
+  });
+
+  describe('#commitTransaction()', function() {
+    it('should commit a transaction', function(done) {
+      client.commitTransaction(transactionID, function(err, result) {
+        should.not.exist(err);
+        done();
+      });
+    });
+    it('should OTSParameterInvalid when commit a error tranID', function(done) {
+      client.commitTransaction('errorTransactionID', function(err, result) {
+        should.exist(err);
+        err.name.should.equal('OTSParameterInvalid');
+        err.message.should.equal('TransactionID is invalid.');
+        done();
+      });
+    });
+  });
+
+  describe('#abortTransaction()', function() {
+    it('should abort a transaction success', function(done) {
+      client.startTransaction('user', 'foo-need-to-abort', function(err, tid) {
+        client.abortTransaction(tid, function(err, result) {
+          should.not.exist(err);
+          result.Code.should.equal('OK');
+          done();
+        });
+      });
+    });
+
+    it('should OTSStorageSessionNotExist when abort a committed tran', function(done) {
+      client.abortTransaction(transactionID, function(err, result) {
+        should.exist(err);
+        err.name.should.equal('OTSStorageSessionNotExist');
+        done();
+      });
+    });
+
+    it('should OTSParameterInvalid when abort a error tranID', function(done) {
+      client.abortTransaction('errorTransactionID', function(err, result) {
+        should.exist(err);
+        err.name.should.equal('OTSParameterInvalid');
+        err.message.should.equal('TransactionID is invalid.');
+        done();
+      });
+    });
+  });
+
   var now = new Date();
   describe('#putData()', function() {
     it('should insert a row', function(done) {
-      client.putData('user', { Name: 'uid', Value: 'mk2' }, [
+      client.putData('testuser', 
+        [ 
+          { Name: 'uid', Value: 'mk2' }, 
           { Name: 'firstname', Value: 'yuan' },
+        ],
+        [
           { Name: 'lastname', Value: 'feng\' aerdeng' },
           { Name: 'nickname', Value: '苏千' },
           { Name: 'age', Value: 28 },
@@ -163,11 +289,17 @@ describe('client.test.js', function() {
 
   describe('#getRow()', function() {
     it('should return a row', function(done) {
-      client.getRow('user', { Name: 'uid', Value: 'mk2' }, function(err, row) {
+      client.getRow('testuser', 
+      [ 
+        { Name: 'uid', Value: 'mk2' }, 
+        { Name: 'firstname', Value: 'yuan' },
+      ], 
+      function(err, row) {
         should.not.exist(err);
         // console.log(row);
         row.should.have.keys([ 
-          'uid', 'firstname', 'lastname', 'nickname',
+          'uid', 'firstname', 
+          'lastname', 'nickname',
           'age', 'price', 'enable',
           'man', 'female', 'createtime'
         ]);
@@ -187,7 +319,11 @@ describe('client.test.js', function() {
     });
 
     it('should return null when pk not exists', function(done) {
-      client.getRow('user', { Name: 'uid', Value: 'not-existskey' }, function(err, row) {
+      client.getRow('testuser', 
+      [ 
+        { Name: 'uid', Value: 'not-existskey' }, 
+        { Name: 'firstname', Value: 'haha' },
+      ], function(err, row) {
         should.not.exist(err);
         should.not.exist(row);
         done();
@@ -195,9 +331,138 @@ describe('client.test.js', function() {
     });
   });
 
+  describe('#getRowsByOffset()', function() {
+    before(function(done) {
+      // insert 20 users first.
+      var ep = EventProxy.create();
+      ep.after('putDataDone', 20, function() {
+        done();
+      });
+      for (var i = 0; i < 20; i++) {
+        client.putData('testuser', 
+        [ 
+          { Name: 'uid', Value: 'testuser_' + (i % 2) }, 
+          { Name: 'firstname', Value: 'name' + i } 
+        ],
+        [
+          { Name: 'lastname', Value: 'lastname' + i },
+          { Name: 'nickname', Value: '花名' + i },
+          { Name: 'age', Value: 20 + i },
+          { Name: 'price', Value: 50.5 + i },
+          { Name: 'enable', Value: i % 2 === 0 },
+          { Name: 'man', Value: i % 2 === 0 },
+          { Name: 'female', Value: i % 3 === 0 },
+          { Name: 'createtime', Value: new Date().toJSON() },
+        ], function(err, result) {
+          should.not.exist(err);
+          ep.emit('putDataDone');
+        });
+      }
+    });
+    it('should get 5 users, testuser_0 offset:0 top:5', function(done) {
+      client.getRowsByOffset('testuser', { Name: 'uid', Value: 'testuser_0' }, null, 0, 5, 
+      function(err, rows) {
+        should.not.exist(err);
+        rows.should.length(5);
+        for (var i = rows.length; i--; ) {
+          var row = rows[i];
+          row.should.have.keys([ 
+            'uid', 'firstname', 
+            'lastname', 'nickname',
+            'age', 'price', 'enable',
+            'man', 'female', 'createtime'
+          ]);
+        }
+        done();
+      });
+    });
+    it('should get 5 users, testuser_0 offset:5 top:5', function(done) {
+      client.getRowsByOffset('testuser', { Name: 'uid', Value: 'testuser_0' }, 
+      [ 'firstname', 'age', 'createtime' ], 5, 5, function(err, rows) {
+        should.not.exist(err);
+        rows.should.length(5);
+        for (var i = rows.length; i--; ) {
+          var row = rows[i];
+          row.should.have.keys([ 
+            'firstname', 
+            'age', 'createtime'
+          ]);
+        }
+        done();
+      });
+    });
+    it('should get 0 users, testuser_0 offset:10 top:5', function(done) {
+      client.getRowsByOffset('testuser', { Name: 'uid', Value: 'testuser_0' }, 
+      [ 'age' ], 10, 5, function(err, rows) {
+        should.not.exist(err);
+        rows.should.length(0);
+        done();
+      });
+    });
+  });
+
+  describe('#getRowsByRange()', function() {
+    before(function(done) {
+      // insert 10 urls first.
+      var ep = EventProxy.create();
+      ep.after('putDataDone', 10, function() {
+        done();
+      });
+      for (var i = 0; i < 10; i++) {
+        var url = 'http://t.cn/abcd' + i;
+        client.putData('testurl', 
+        [ 
+          { Name: 'md5', Value: md5(url) }, 
+        ],
+        [
+          { Name: 'url', Value: url },
+          { Name: 'createtime', Value: new Date().toJSON() },
+        ], function(err, result) {
+          should.not.exist(err);
+          ep.emit('putDataDone');
+        });
+      }
+    });
+    var nextBegin = null;
+    it('should get 6 rows, top:5', function(done) {
+      client.getRowsByRange('testurl', null, 
+      { Name: 'md5', Begin: ots.STR_MIN, End: ots.STR_MAX }, null, 6, 
+      function(err, rows) {
+        should.not.exist(err);
+        rows.should.length(6);
+        for (var i = rows.length; i--; ) {
+          var row = rows[i];
+          row.should.have.keys([ 
+            'md5', 'url', 'createtime'
+          ]);
+        }
+        nextBegin = rows[rows.length - 1].md5;
+        done();
+      });
+    });
+    it('should get 5 rows, top:5 next', function(done) {
+      client.getRowsByRange('testurl', null, 
+      { Name: 'md5', Begin: nextBegin, End: ots.STR_MAX }, null, 6, 
+      function(err, rows) {
+        should.not.exist(err);
+        rows.should.length(6);
+        for (var i = rows.length; i--; ) {
+          var row = rows[i];
+          row.should.have.keys([ 
+            'md5', 'url', 'createtime'
+          ]);
+        }
+        nextBegin = rows[rows.length - 1].md5;
+        done();
+      });
+    });
+  });
+
   describe('#deleteData()', function() {
     it('should delete a row', function(done) {
-      client.deleteData('user', { Name: 'uid', Value: 'mk2' }, function(err, result) {
+      client.deleteData('testuser', 
+        [ { Name: 'uid', Value: 'mk2' }, { Name: 'firstname', Value: 'yuan' } ], 
+      function(err, result) {
         should.not.exist(err);
         client.getRow('user', { Name: 'uid', Value: 'mk2' }, function(err, row) {
           should.not.exist(err);
@@ -211,6 +476,50 @@ describe('client.test.js', function() {
       client.deleteData('user', { Name: 'uid', Value: 'not-existskey' }, function(err, result) {
         should.not.exist(err);
         done();
+      });
+    });
+  });
+
+  describe('#batchModifyData()', function() {
+    var url = 'http://t.cn/abc' + new Date().getTime();
+    var urlmd5 = md5(url);
+    var transactionID = null;
+
+    after(function(done) {
+      client.abortTransaction(transactionID, function(err) {
+        // console.log(arguments)
+        done();
+      });
+    });
+
+    it('should delete "' + url + '" and insert new', function(done) {
+      client.startTransaction('testurl', urlmd5, function(err, tid) {
+        should.not.exist(err);
+        tid.should.be.a('string');
+        transactionID = tid;
+        client.batchModifyData('testurl', 
+        [
+          {
+            Type: 'DELETE',
+            PrimaryKeys: { Name: 'md5', Value: urlmd5 }
+          },
+          {
+            Type: 'PUT',
+            PrimaryKeys: { Name: 'md5', Value: urlmd5 },
+            Columns: [
+              { Name: 'url', Value: url },
+              { Name: 'createtime', Value: new Date().toJSON() }
+            ],
+            Checking: 'NO'
+          }
+        ], tid, function(err, result) {
+          should.not.exist(err);
+          result.Code.should.equal('OK');
+          client.commitTransaction(tid, function(err) {
+            should.not.exist(err);
+            done();
+          });
+        });
       });
     });
   });

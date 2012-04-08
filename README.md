@@ -4,18 +4,26 @@ Aliyun [OTS](http://ots.aliyun.com/)(Open Table Service) SDK for [nodejs](http:/
 
 ## Support API
 
-* CreateTableGroup (comming soon)
-* ListTableGroup (comming soon)
-* CreateTable
-* ListTable
-* GetTableMeta
-* DeleteTable
-* GetRow
-* GetRowsByRange (comming soon)
-* GetRowsByOffset (comming soon)
-* PutData
-* DeleteData
-* BatchModifyData (comming soon)
+* TableGroup
+  * CreateTableGroup
+  * DeleteTableGroup
+  * ListTableGroup
+* Table
+  * CreateTable
+  * DeleteTable
+  * GetTableMeta
+  * ListTable
+* Transaction
+  * StartTransaction
+  * CommitTransaction
+  * AbortTransaction
+* DataRow
+  * PutData
+  * DeleteData
+  * BatchModifyData
+  * GetRow
+  * GetRowsByRange
+  * GetRowsByOffset
 
 ## Install
 
@@ -28,13 +36,13 @@ $ npm install ots
 ```javascript
 var ots = require('ots');
 var client = ots.createClient({
-  AccessID: 'your AccessID',
-  AccessKey: 'your AccessKey'
+  accessID: 'your accessID',
+  accessKey: 'your accessKey'
 });
 
 // create a table
 client.createTable({
-  TableName: 'test',
+  TableName: 'testdemo',
   PrimaryKey: [
     {'Name': 'uid', 'Type': 'STRING'},
   ],
@@ -70,9 +78,9 @@ client.putData('user',
     { Name: 'enable', Value: true },
     { Name: 'man', Value: true },
     { Name: 'female', Value: false },
-    { Name: 'createtime', Value: now.toJSON() },
+    { Name: 'createtime', Value: new Date().toJSON() },
   ], function(err, result) {
-  console.log(err, row);
+  console.log(err, result);
 });
 
 // get a row
@@ -80,3 +88,15 @@ client.getRow('user', { Name: 'uid', Value: 'mk2' }, function(err, row) {
   console.log(err, row);
 });
 ```
+
+More examples, please see [/test/client.test.js](https://github.com/fengmk2/ots/blob/master/test/client.test.js).
+
+## Links
+
+* [OTS RESTful API Documents](http://ots.aliyun.com/ots_sdk/OTS_RESTful_API_2012_03_22.pdf)
+* [OTS Data Model](http://ots.aliyun.com/ots_sdk/OTS_Data%20Model_2012_03_22.pdf)
+* [OTS Dashboard](http://ots.aliyun.com/dashboard)
+* [Python SDK](http://ots.aliyun.com/ots_sdk/ots_python_sdk_2012_03_22.zip)
+* [.Net SDK](http://ots.aliyun.com/ots_sdk/Aliyun_SDK_dotNET_1_0_4458.zip)
+* [Java SDK](http://storage.aliyun.com/oss/aliyun_portal_storage/oss_api/OSS_OTS_Java_SDK.zip)
+* [OTS Developer Guide](http://ots.aliyun.com/guide/index)
