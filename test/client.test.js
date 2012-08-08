@@ -273,8 +273,9 @@ describe('client.test.js', function() {
         ],
         [
           { Name: 'lastname', Value: 'feng\' aerdeng' },
-          { Name: 'nickname', Value: '苏千' },
+          { Name: 'nickname', Value: '  苏千\n ' },
           { Name: 'age', Value: 28 },
+          { Name: 'json', Value: '{ "foo": "bar" }' },
           { Name: 'price', Value: 110.5 },
           { Name: 'enable', Value: true },
           { Name: 'man', Value: true },
@@ -302,18 +303,20 @@ describe('client.test.js', function() {
           'lastname', 'nickname',
           'age', 'price', 'enable',
           'man', 'female', 
+          'json',
           'createtime'
         ]);
         row.uid.should.equal('mk2');
         row.firstname.should.equal('yuan');
         row.lastname.should.equal('feng\' aerdeng');
-        row.nickname.should.equal('苏千');
+        row.nickname.should.equal('  苏千\n ');
         row.age.should.equal(28);
         row.price.should.equal(110.5);
         row.enable.should.equal(true);
         row.man.should.equal(true);
         row.female.should.equal(false);
         row.createtime.should.equal(now.toJSON());
+        row.json.should.equal('{ "foo": "bar" }');
         new Date(row.createtime).getTime().should.equal(now);
         done();
       });
