@@ -287,21 +287,22 @@ describe('client.test.js', function() {
     });
   });
 
-  describe('#getRow()', function() {
-    it('should return a row', function(done) {
+  describe('#getRow()', function () {
+    it('should return a row', function (done) {
       client.getRow('testuser', 
       [ 
         { Name: 'uid', Value: 'mk2' }, 
         { Name: 'firstname', Value: 'yuan' },
       ], 
-      function(err, row) {
+      function (err, row) {
         should.not.exist(err);
         // console.log(row);
         row.should.have.keys([ 
           'uid', 'firstname', 
           'lastname', 'nickname',
           'age', 'price', 'enable',
-          'man', 'female', 'createtime'
+          'man', 'female', 
+          'createtime'
         ]);
         row.uid.should.equal('mk2');
         row.firstname.should.equal('yuan');
@@ -313,7 +314,7 @@ describe('client.test.js', function() {
         row.man.should.equal(true);
         row.female.should.equal(false);
         row.createtime.should.equal(now.toJSON());
-        new Date(row.createtime).should.eql(now);
+        new Date(row.createtime).getTime().should.equal(now);
         done();
       });
     });
@@ -331,11 +332,11 @@ describe('client.test.js', function() {
     });
   });
 
-  describe('#getRowsByOffset()', function() {
-    before(function(done) {
+  describe('#getRowsByOffset()', function () {
+    before(function (done) {
       // insert 20 users first.
       var ep = EventProxy.create();
-      ep.after('putDataDone', 20, function() {
+      ep.after('putDataDone', 20, function () {
         done();
       });
       for (var i = 0; i < 20; i++) {
@@ -353,8 +354,8 @@ describe('client.test.js', function() {
           { Name: 'man', Value: i % 2 === 0 },
           { Name: 'female', Value: i % 3 === 0 },
           { Name: 'createtime', Value: new Date().toJSON() },
-        ], function(err, result) {
-          should.not.exist(err);
+        ], function (err, result) {
+          // should.not.exist(err);
           ep.emit('putDataDone');
         });
       }
@@ -458,13 +459,14 @@ describe('client.test.js', function() {
     });
   });
 
-  describe('#deleteData()', function() {
-    it('should delete a row', function(done) {
+  describe('#deleteData()', function () {
+    it('should delete a row', function (done) {
       client.deleteData('testuser', 
-        [ { Name: 'uid', Value: 'mk2' }, { Name: 'firstname', Value: 'yuan' } ], 
-      function(err, result) {
+        [ { Name: 'uid', Value: 'mk2' }, { Name: 'firstname', Value: 'yuan' } ], function (err, result) {
         should.not.exist(err);
-        client.getRow('user', { Name: 'uid', Value: 'mk2' }, function(err, row) {
+        result.should.have.property('Code', 'OK');
+        // TODO: WTF, delete delay?!
+        client.getRow('user', { Name: 'uid', Value: 'mk2' }, function (err, row) {
           should.not.exist(err);
           should.not.exist(row);
           done();
@@ -472,28 +474,29 @@ describe('client.test.js', function() {
       });
     });
 
-    it('should delete by a not exists key', function(done) {
-      client.deleteData('user', { Name: 'uid', Value: 'not-existskey' }, function(err, result) {
+    it('should delete by a not exists key', function (done) {
+      client.deleteData('user', {Name: 'uid', Value: 'not-existskey'}, function (err, result) {
         should.not.exist(err);
+        result.should.have.property('Code', 'OK');
         done();
       });
     });
   });
 
-  describe('#batchModifyData()', function() {
+  describe('#batchModifyData()', function () {
     var url = 'http://t.cn/abc' + new Date().getTime();
     var urlmd5 = md5(url);
     var transactionID = null;
 
     after(function(done) {
-      client.abortTransaction(transactionID, function(err) {
+      client.abortTransaction(transactionID, function (err) {
         // console.log(arguments)
         done();
       });
     });
 
-    it('should delete "' + url + '" and insert new', function(done) {
-      client.startTransaction('testurl', urlmd5, function(err, tid) {
+    it('should delete "' + url + '" and insert new', function (done) {
+      client.startTransaction('testurl', urlmd5, function (err, tid) {
         should.not.exist(err);
         tid.should.be.a('string');
         transactionID = tid;
