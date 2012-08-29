@@ -10,7 +10,7 @@
 
 var ots = require('../');
 var should = require('should');
-var config = require('./config.json')
+var config = require('./config.json');
 var EventProxy = require('eventproxy').EventProxy;
 var crypto = require('crypto');
 
@@ -27,14 +27,14 @@ describe('client.test.js', function() {
     accessKey: config.accessKey,
   });
 
-  before(function(done) {
-    var ep = EventProxy.create('testgroup', 'test', 'testuser', 'testurl', function() {
+  before(function (done) {
+    var ep = EventProxy.create('testgroup', 'test', 'testuser', 'testurl', function () {
       done();
     });
-    client.deleteTableGroup('testgroup', function(err) {
+    client.deleteTableGroup('testgroup', function (err) {
       ep.emit('testgroup');
     });
-    client.deleteTable('test', function(err) {
+    client.deleteTable('test', function (err) {
       ep.emit('test');
     });
     client.createTable({
@@ -44,7 +44,7 @@ describe('client.test.js', function() {
         { 'Name': 'firstname', 'Type': 'STRING' },
       ],
       PagingKeyLen: 1,
-    }, function(err, result) {
+    }, function (err, result) {
       ep.emit('testuser')
     });
     client.createTable({
@@ -53,12 +53,12 @@ describe('client.test.js', function() {
         { 'Name': 'md5', 'Type': 'STRING' },
       ],
       PagingKeyLen: 0,
-    }, function(err, result) {
+    }, function (err, result) {
       ep.emit('testurl')
     });
   });
 
-  it('should sign by sorted', function() {
+  it('should sign by sorted', function () {
     var params = [
       [ 'TableName', 'CapTable' ],
       [ 'PK.1.Name', 'PrimaryKey1' ],
@@ -79,18 +79,18 @@ describe('client.test.js', function() {
     params.join('&').should.include('&Signature=');
   });
 
-  describe('#createTableGroup()', function() {
-    it('should create a group', function(done) {
-      client.createTableGroup('testgroup', 'STRING', function(err, result) {
+  describe('#createTableGroup()', function () {
+    it('should create a group', function (done) {
+      client.createTableGroup('testgroup', 'STRING', function (err, result) {
         should.not.exist(err);
         done();
       });
     });
   });
 
-  describe('#listTableGroup()', function() {
-    it('should list all groups', function(done) {
-      client.listTableGroup(function(err, groups) {
+  describe('#listTableGroup()', function () {
+    it('should list all groups', function (done) {
+      client.listTableGroup(function (err, groups) {
         should.not.exist(err);
         groups.should.be.an.instanceof(Array);
         groups.length.should.above(0);
@@ -100,11 +100,11 @@ describe('client.test.js', function() {
     });
   });
 
-  describe('#deleteTableGroup()', function() {
-    it('should delete a group', function(done) {
-      client.deleteTableGroup('testgroup', function(err, result) {
+  describe('#deleteTableGroup()', function () {
+    it('should delete a group', function (done) {
+      client.deleteTableGroup('testgroup', function (err, result) {
         should.not.exist(err);
-        client.deleteTableGroup('testgroup', function(err, result) {
+        client.deleteTableGroup('testgroup', function (err, result) {
           should.exist(err);
           err.name.should.equal('OTSStorageObjectNotExist');
           done();
@@ -113,10 +113,10 @@ describe('client.test.js', function() {
     });
   });
 
-  describe('#createTable()', function() {
+  describe('#createTable()', function () {
 
-    it('should return OTSMissingParameter error', function(done) {
-      client.createTable({ table: { TableName: 'test' } }, function(err, result) {
+    it('should return OTSMissingParameter error', function (done) {
+      client.createTable({ table: { TableName: 'test' } }, function (err, result) {
         should.exist(err);
         err.name.should.equal('OTSMissingParameter');
         err.message.should.equal('The request must contain the parameter of PK.1.Name');
@@ -462,14 +462,22 @@ describe('client.test.js', function() {
     });
   });
 
-  describe('#deleteData()', function () {
+  describe('deleteData()', function () {
     it('should delete a row', function (done) {
       client.deleteData('testuser', 
-        [ { Name: 'uid', Value: 'mk2' }, { Name: 'firstname', Value: 'yuan' } ], function (err, result) {
+        [
+          {Name: 'uid', Value: 'mk2'},
+          {Name: 'firstname', Value: 'yuan'}
+        ],
+      function (err, result) {
         should.not.exist(err);
         result.should.have.property('Code', 'OK');
         // TODO: WTF, delete delay?!
-        client.getRow('user', { Name: 'uid', Value: 'mk2' }, function (err, row) {
+        client.getRow('testuser', [
+            {Name: 'uid', Value: 'mk2'},
+            {Name: 'firstname', Value: 'yuan'}
+          ],
+        function (err, row) {
           should.not.exist(err);
           should.not.exist(row);
           done();
@@ -486,7 +494,7 @@ describe('client.test.js', function() {
     });
   });
 
-  describe('#batchModifyData()', function () {
+  describe('batchModifyData()', function () {
     var url = 'http://t.cn/abc' + new Date().getTime();
     var urlmd5 = md5(url);
     var transactionID = null;
@@ -507,21 +515,21 @@ describe('client.test.js', function() {
         [
           {
             Type: 'DELETE',
-            PrimaryKeys: { Name: 'md5', Value: urlmd5 }
+            PrimaryKeys: {Name: 'md5', Value: urlmd5}
           },
           {
             Type: 'PUT',
-            PrimaryKeys: { Name: 'md5', Value: urlmd5 },
+            PrimaryKeys: {Name: 'md5', Value: urlmd5},
             Columns: [
-              { Name: 'url', Value: url },
-              { Name: 'createtime', Value: new Date().toJSON() }
+              {Name: 'url', Value: url},
+              {Name: 'createtime', Value: new Date().toJSON()}
             ],
             Checking: 'NO'
           }
-        ], tid, function(err, result) {
+        ], tid, function (err, result) {
           should.not.exist(err);
           result.Code.should.equal('OK');
-          client.commitTransaction(tid, function(err) {
+          client.commitTransaction(tid, function (err) {
             should.not.exist(err);
             done();
           });

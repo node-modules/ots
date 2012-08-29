@@ -1,6 +1,5 @@
 var Benchmark = require('benchmark');
 var xml2json = require('xml2json');
-var fs = require('fs');
 var suite = new Benchmark.Suite();
 
 var xml = '\
@@ -35,5 +34,5 @@ suite
 .on('complete', function () {
   console.log('Fastest is ' + this.filter('fastest').pluck('name'));
 })
-.run();
+.run({async: true, delay: 5});
 
