@@ -31,4 +31,13 @@ describe('xml2json', function () {
     json.doc.Column[3].should.eql({Name: 'bar', Value: {type: 'STRING', $t: ' '}});
     json.doc.Column[4].should.eql({PK: 'true', Name: 'uid', Value: {type: 'STRING', $t: 'god'}});
   });
+
+  it('should success quot', function (done) {
+    var xml = fs.readFileSync(fixturesDir + '/ots-result2.xml', 'utf-8');
+    var json = xml2json.toJson(xml, {object: true, space: true, sanitize: false});
+    JSON.stringify(json).should.include('\\"isAward\\":false');
+    done();
+  });
 });
+
+

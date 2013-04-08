@@ -25,6 +25,7 @@ describe('client.test.js', function() {
   var client = ots.createClient({
     accessID: config.accessID,
     accessKey: config.accessKey,
+    APIHost: config.APIHost
   });
 
   before(function (done) {
@@ -160,7 +161,7 @@ describe('client.test.js', function() {
         meta.should.have.keys([ 'TableName', 'PrimaryKey', 'PagingKeyLen', 'View' ]);
         meta.TableName.should.equal('test');
         meta.PrimaryKey.should.have.keys([ 'Name', 'Type' ]);
-        meta.PagingKeyLen.should.equal('0');
+        meta.PagingKeyLen.should.equal(0);
         meta.View.PrimaryKey.should.length(3);
         meta.View.Column.should.length(2);
         meta.View.Name.should.equal('view1');
