@@ -80,7 +80,7 @@ describe('client.test.js', function() {
     params.join('&').should.include('&Signature=');
   });
 
-  describe('#createTableGroup()', function () {
+  describe('createTableGroup()', function () {
     it('should create a group', function (done) {
       client.createTableGroup('testgroup', 'STRING', function (err, result) {
         should.not.exist(err);
@@ -89,7 +89,7 @@ describe('client.test.js', function() {
     });
   });
 
-  describe('#listTableGroup()', function () {
+  describe('listTableGroup()', function () {
     it('should list all groups', function (done) {
       client.listTableGroup(function (err, groups) {
         should.not.exist(err);
@@ -101,7 +101,7 @@ describe('client.test.js', function() {
     });
   });
 
-  describe('#deleteTableGroup()', function () {
+  describe('deleteTableGroup()', function () {
     it('should delete a group', function (done) {
       client.deleteTableGroup('testgroup', function (err, result) {
         should.not.exist(err);
@@ -114,7 +114,7 @@ describe('client.test.js', function() {
     });
   });
 
-  describe('#createTable()', function () {
+  describe('createTable()', function () {
 
     it('should return OTSMissingParameter error', function (done) {
       client.createTable({ table: { TableName: 'test' } }, function (err, result) {
@@ -207,7 +207,7 @@ describe('client.test.js', function() {
   });
 
   var transactionID = null;
-  describe('#startTransaction()', function() {
+  describe('startTransaction()', function() {
     it('should start and get a transaction id', function(done) {
       client.startTransaction('user', 'foo', function(err, tid) {
         should.not.exist(err);
@@ -235,7 +235,7 @@ describe('client.test.js', function() {
     });
   });
 
-  describe('#abortTransaction()', function() {
+  describe('abortTransaction()', function() {
     it('should abort a transaction success', function(done) {
       client.startTransaction('user', 'foo-need-to-abort', function(err, tid) {
         client.abortTransaction(tid, function(err, result) {
@@ -289,7 +289,7 @@ describe('client.test.js', function() {
     });
   });
 
-  describe('#getRow()', function () {
+  describe('getRow()', function () {
     it('should return a row', function (done) {
       client.getRow('testuser', 
       [ 
@@ -318,7 +318,6 @@ describe('client.test.js', function() {
         row.female.should.equal(false);
         row.createtime.should.equal(now.toJSON());
         row.json.should.equal('{ "foo": "bar" }');
-        new Date(row.createtime).getTime().should.equal(now);
         done();
       });
     });
@@ -336,7 +335,7 @@ describe('client.test.js', function() {
     });
   });
 
-  describe('#getRowsByOffset()', function () {
+  describe('getRowsByOffset()', function () {
     before(function (done) {
       // insert 20 users first.
       var ep = EventProxy.create();
@@ -406,7 +405,7 @@ describe('client.test.js', function() {
     });
   });
 
-  describe('#getRowsByRange()', function() {
+  describe('getRowsByRange()', function() {
     before(function(done) {
       // insert 10 urls first.
       var ep = EventProxy.create();
@@ -487,7 +486,10 @@ describe('client.test.js', function() {
     });
 
     it('should delete by a not exists key', function (done) {
-      client.deleteData('testuser', {Name: 'uid', Value: 'not-existskey'}, function (err, result) {
+      client.deleteData('testuser', [
+        {Name: 'uid', Value: 'not-existskey'},
+        {Name: 'firstname', Value: 'yuan'}
+      ], function (err, result) {
         should.not.exist(err);
         result.should.have.property('Code', 'OK');
         done();

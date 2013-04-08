@@ -10,7 +10,7 @@
  * Module dependencies.
  */
 
-var xml2json = require('xml2json');
+var xml2json = require('xml2json-edp');
 var should = require('should');
 var fs = require('fs');
 
