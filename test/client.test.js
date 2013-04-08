@@ -161,7 +161,7 @@ describe('client.test.js', function() {
         meta.should.have.keys([ 'TableName', 'PrimaryKey', 'PagingKeyLen', 'View' ]);
         meta.TableName.should.equal('test');
         meta.PrimaryKey.should.have.keys([ 'Name', 'Type' ]);
-        meta.PagingKeyLen.should.equal(0);
+        meta.PagingKeyLen.should.equal('0');
         meta.View.PrimaryKey.should.length(3);
         meta.View.Column.should.length(2);
         meta.View.Name.should.equal('view1');
@@ -487,7 +487,7 @@ describe('client.test.js', function() {
     });
 
     it('should delete by a not exists key', function (done) {
-      client.deleteData('user', {Name: 'uid', Value: 'not-existskey'}, function (err, result) {
+      client.deleteData('testuser', {Name: 'uid', Value: 'not-existskey'}, function (err, result) {
         should.not.exist(err);
         result.should.have.property('Code', 'OK');
         done();

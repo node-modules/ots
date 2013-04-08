@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "urllib": ">=0.2.7",
-    "xml2json": ">=0.3.2"
+    "xml2json": "=0.2.4"
   },
   "devDependencies": {
     "should": "*",
