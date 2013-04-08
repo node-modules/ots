@@ -25,6 +25,7 @@ describe('client.test.js', function() {
   var client = ots.createClient({
     accessID: config.accessID,
     accessKey: config.accessKey,
+    APIHost: config.APIHost
   });
 
   before(function (done) {
@@ -486,7 +487,7 @@ describe('client.test.js', function() {
     });
 
     it('should delete by a not exists key', function (done) {
-      client.deleteData('user', {Name: 'uid', Value: 'not-existskey'}, function (err, result) {
+      client.deleteData('testuser', {Name: 'uid', Value: 'not-existskey'}, function (err, result) {
         should.not.exist(err);
         result.should.have.property('Code', 'OK');
         done();
