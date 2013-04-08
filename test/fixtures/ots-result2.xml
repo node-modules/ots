@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GetRowResult><Table name="tt"><Row><Column><Name>user</Name><Value type="STRING">1</Value></Column><Column><Name>member_car_info</Name><Value type="STRING">{&quot;isAward&quot;:false}</Value></Column></Row></Table><RequestID>46920387901760-1365415321001646</RequestID><HostID>MTAbMjAaLeY3LjEzOA==</HostID></GetRowResult>
