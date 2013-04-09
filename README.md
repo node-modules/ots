@@ -101,6 +101,22 @@ More examples, please see [/test/client.test.js](https://github.com/fengmk2/ots/
 * [Java SDK](http://storage.aliyun.com/oss/aliyun_portal_storage/oss_api/OSS_OTS_Java_SDK.zip)
 * [OTS Developer Guide](http://ots.aliyun.com/guide/index)
 
+## Authors
+
+```bash
+$ git summary 
+
+ project  : ots
+ repo age : 1 year
+ active   : 8 days
+ commits  : 22
+ files    : 15
+ authors  : 
+    17  fengmk2                 77.3%
+     3  tangyao                 13.6%
+     2  coolme200               9.1%
+```
+
 ## License 
 
 (The MIT License)
