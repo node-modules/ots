@@ -290,6 +290,23 @@ describe('client.test.js', function() {
   });
 
   describe('getRow()', function () {
+    
+    it('should return error', function (done) {
+      client.getRow('testuser', 
+      [ 
+        { Name: 'uid1', Value: 'mk2' }, 
+        { Name: 'firstname', Value: 'yuan' },
+      ], 
+      function (err, row) {
+        should.exist(err);
+        err.name.should.include('OTSMetaNotMatch');
+        err.data.should.have.property('Error');
+        err.data.Error.should.have.property('RequestID');
+        err.data.Error.should.have.property('HostID');
+        done();
+      });
+    });
+
     it('should return a row', function (done) {
       client.getRow('testuser', 
       [ 
@@ -537,6 +554,27 @@ describe('client.test.js', function() {
             done();
           });
         });
+      });
+    });
+  });
+
+  describe('mock()', function () {
+    var _client = ots.createClient({
+      accessID: config.accessID,
+      accessKey: config.accessKey,
+      APIHost: config.APIHost,
+      requestTimeout: 0.0001
+    });
+    it('request error', function(done) {
+      _client.getRow('testuser', 
+      [ 
+        { Name: 'uid', Value: 'mk2' }, 
+        { Name: 'firstname', Value: 'yuan' },
+      ], 
+      function (err, row) {
+        should.exist(err);
+        err.name.should.include('OTSRequestTimeoutError');
+        done();
       });
     });
   });
