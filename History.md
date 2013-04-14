@@ -1,4 +1,9 @@
 
+0.1.8 / 2013-04-14 
+==================
+
+  * fixed TypeError on `Client.prototype.parseRows`
+
 0.1.7 / 2013-04-09 
 ==================
 
