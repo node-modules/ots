@@ -265,8 +265,8 @@ describe('client.test.js', function() {
   });
 
   var now = new Date();
-  describe('#putData()', function() {
-    it('should insert a row', function(done) {
+  describe('putData()', function () {
+    it('should insert a row', function (done) {
       client.putData('testuser', 
         [ 
           { Name: 'uid', Value: 'mk2' }, 
@@ -280,10 +280,14 @@ describe('client.test.js', function() {
           { Name: 'price', Value: 110.5 },
           { Name: 'enable', Value: true },
           { Name: 'man', Value: true },
+          { Name: 'status', Value: null },
           { Name: 'female', Value: false },
           { Name: 'createtime', Value: now.toJSON() },
-        ], function(err, result) {
+        ], 
+      function (err, result) {
         should.not.exist(err);
+        result.should.have.property('Code', 'OK');
+        result.should.have.property('RequestID');
         done();
       });
     });
@@ -321,7 +325,7 @@ describe('client.test.js', function() {
           'lastname', 'nickname',
           'age', 'price', 'enable',
           'man', 'female', 
-          'json',
+          'json', 'status',
           'createtime'
         ]);
         row.uid.should.equal('mk2');
@@ -333,6 +337,7 @@ describe('client.test.js', function() {
         row.enable.should.equal(true);
         row.man.should.equal(true);
         row.female.should.equal(false);
+        row.status.should.equal('null');
         row.createtime.should.equal(now.toJSON());
         row.json.should.equal('{ "foo": "bar" }');
         done();
