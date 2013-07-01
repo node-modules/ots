@@ -13,7 +13,7 @@ var should = require('should');
 var config = require('./config.json');
 var EventProxy = require('eventproxy').EventProxy;
 var crypto = require('crypto');
-
+var mm = require('mm');
 
 function md5(s) {
   var hash = crypto.createHash('md5');
@@ -27,6 +27,8 @@ describe('client.test.js', function() {
     accessKey: config.accessKey,
     APIHost: config.APIHost
   });
+
+  afterEach(mm.restore);
 
   before(function (done) {
     var ep = EventProxy.create('testgroup', 'test', 'testuser', 'testurl', function () {
@@ -567,10 +569,15 @@ describe('client.test.js', function() {
     var _client = ots.createClient({
       accessID: config.accessID,
       accessKey: config.accessKey,
-      APIHost: config.APIHost,
+      APIHost: 'http://service.ots.aliyun.com:80',
       requestTimeout: 0.0001
     });
-    it('request error', function(done) {
+
+    after(function () {
+      _client.close();
+    });
+
+    it('request error', function (done) {
       _client.getRow('testuser', 
       [ 
         { Name: 'uid', Value: 'mk2' }, 
@@ -579,6 +586,21 @@ describe('client.test.js', function() {
       function (err, row) {
         should.exist(err);
         err.name.should.include('OTSRequestTimeoutError');
+        done();
+      });
+    });
+
+    it('should return error when dns error', function (done) {
+      mm.error(require('dns'), 'resolve4');
+      _client.dns.domains = {};
+      _client.getRow('testuser', 
+      [ 
+        { Name: 'uid', Value: 'mk2' }, 
+        { Name: 'firstname', Value: 'yuan' },
+      ], 
+      function (err, row) {
+        should.exist(err);
+        err.name.should.include('MockError');
         done();
       });
     });

@@ -11,15 +11,30 @@
     "url": "git://github.com/fengmk2/ots.git"
   },
   "scripts": {
-    "test": "make test"
+    "test": "make test-all",
+    "blanket": { 
+      "pattern": "ots/lib",
+      "data-cover-flags": {
+        "debug": false
+      }
+    },
+    "travis-cov": {
+      "threshold": 100
+    }
   },
   "dependencies": {
-    "urllib": ">=0.2.7",
+    "urllib": ">=0.3.4",
+    "cache-dns": ">=0.0.1",
     "xml2json-edp": "=0.2.5"
   },
   "devDependencies": {
     "should": "*",
     "mocha": "*",
+    "mm": "*",
+    "blanket": "*",
+    "travis-cov": "*",
+    "coveralls": "*",
+    "mocha-lcov-reporter": "*",
     "eventproxy": "*",
     "agentkeepalive": ">=0.1.1"
   },
