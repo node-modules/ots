@@ -156,8 +156,8 @@ describe('client.test.js', function() {
       });
     });
 
-    it('should get "test" table meta success', function(done) {
-      client.getTableMeta('test', function(err, meta) {
+    it('should get "test" table meta success', function (done) {
+      client.getTableMeta('test', function (err, meta) {
         should.not.exist(err);
         // console.log('%j', meta)
         meta.should.have.keys([ 'TableName', 'PrimaryKey', 'PagingKeyLen', 'View' ]);
@@ -592,7 +592,10 @@ describe('client.test.js', function() {
 
     it('should return error when dns error', function (done) {
       mm.error(require('dns'), 'resolve4');
-      _client.dns.domains = {};
+      _client.dns.domains = {
+        lookup: {},
+        resolve4: {}
+      };
       _client.getRow('testuser', 
       [ 
         { Name: 'uid', Value: 'mk2' }, 

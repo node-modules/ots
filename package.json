@@ -19,13 +19,13 @@
       }
     },
     "travis-cov": {
-      "threshold": 100
+      "threshold": 80
     }
   },
   "dependencies": {
     "urllib": ">=0.3.4",
-    "cache-dns": ">=0.0.1",
-    "xml2json-edp": "=0.2.5"
+    "cache-dns": ">=0.0.2",
+    "xml2json": ">=0.3.2"
   },
   "devDependencies": {
     "should": "*",
