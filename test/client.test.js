@@ -585,7 +585,7 @@ describe('client.test.js', function() {
       ], 
       function (err, row) {
         should.exist(err);
-        err.name.should.include('OTSRequestTimeoutError');
+        err.name.should.include('OTSConnectionTimeoutError');
         done();
       });
     });
