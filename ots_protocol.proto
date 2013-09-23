@@ -1,0 +1,262 @@
+package com.aliyun.cloudservice.ots;
+
+/* common structure */
+enum ColumnType {
+    INF_MIN = 0;
+    INF_MAX = 1;
+    INTEGER = 2;
+    STRING = 3;
+    BOOLEAN = 4;
+    DOUBLE = 5;
+}
+
+message ColumnSchema {
+    required string name = 1;
+    required ColumnType type = 2;
+}
+
+message ColumnValue {
+    required ColumnType type = 1;
+    optional int64 value_i = 2;
+    optional string value_s = 3;
+    optional bool value_b = 4;
+    optional double value_d = 5;
+}
+
+message Column {
+    required string name = 1;
+    required ColumnValue value = 2;
+}
+
+message Row {
+    repeated Column primary_keys = 1;
+    repeated Column columns = 2;
+}
+
+message RowPutChange {
+    enum CheckingType {
+        NO = 0;
+        UPDATE = 1;
+        INSERT = 2;
+    }
+
+    required Row row = 1;
+    required CheckingType checking_type = 2 [default = NO];
+}
+
+message RowDeleteChange {
+    repeated Column primary_keys = 1;
+    repeated string column_names = 2;
+}
+
+message ViewMeta {
+    required string view_name = 1;
+    repeated ColumnSchema primary_keys = 2;
+    repeated ColumnSchema columns = 3;
+}
+
+message TableMeta {
+    required string table_name = 1;
+    repeated ViewMeta views = 2;
+    repeated ColumnSchema primary_keys = 3;
+    optional string table_group_name = 4;
+}
+
+message GetRowParameter {
+    required string table_name = 1;
+    repeated Column primary_keys = 2;
+    repeated string column_names = 3;
+}
+
+message PutRowParameter {
+    required string table_name = 1;
+    required RowPutChange row_change = 2;
+}
+
+message DeleteRowParameter {
+    required string table_name = 1;
+    required RowDeleteChange row_change = 2;
+}
+
+message ErrorMessage {
+    required string code = 1;
+    optional string message = 2;
+}
+
+/* CreateTableGroup */
+message CreateTableGroupRequest {
+    required string table_group_name = 1;
+    required ColumnType partition_key_type = 2;
+}
+
+// no response message
+
+/* DeleteTableGroup */
+message DeleteTableGroupRequest {
+    required string table_group_name = 1;
+}
+
+// no response message
+
+/* ListTableGroup */
+// no request message
+
+message ListTableGroupResponse {
+    repeated string table_group_names = 1;
+}
+
+/* CreateTable */
+message CreateTableRequest {
+    required TableMeta table_meta = 1;
+}
+
+// no response message
+
+/* ListTable */
+// no request message
+
+message ListTableResponse {
+    repeated string table_names = 1;
+}
+
+/* GetTableMeta */
+message GetTableMetaRequest {
+    required string table_name = 1;
+}
+
+message GetTableMetaResponse {
+    required TableMeta table_meta = 1;
+}
+
+/* DeleteTable */
+message DeleteTableRequest {
+    required string table_name = 1;
+}
+
+// no response message
+
+/* StartTransaction */
+message StartTransactionRequest {
+    required string entity_name = 1;
+    required ColumnValue partition_key_value = 2;
+}
+
+message StartTransactionResponse {
+    required string transaction_id = 1;
+}
+
+/* AbortTransaction */
+message AbortTransactionRequest {
+    required string transaction_id = 1;
+}
+
+// no response message
+
+/* CommitTransaction */
+message CommitTransactionRequest {
+    required string transaction_id = 1;
+}
+
+// no response message
+
+/* GetRow */
+message GetRowRequest {
+    required GetRowParameter get_row_parameter = 1;
+    optional string transaction_id = 2;
+}
+
+message GetRowResponse {
+    required string table_name = 1;
+    required Row row = 2;
+}
+
+/* GetRowsByRange */
+message GetRowsByRangeRequest {
+    required string table_name= 1;
+    repeated Column primary_key_prefix = 2;
+    required string range_key_name = 3;
+    required ColumnValue range_begin = 4;
+    required ColumnValue range_end = 5;
+    repeated string column_names = 6;
+    required bool is_reverse = 7 [default = false];
+    optional uint32 limit = 8;
+    optional string next_token = 9;
+    optional string transaction_id = 10;
+}
+
+message GetRowsByRangeResponse {
+    required string table_name = 1;
+    repeated Row rows = 2;
+    optional string next_token = 3;
+}
+
+/* PutRow */
+message PutRowRequest {
+    required PutRowParameter put_row_parameter = 1;
+    optional string transaction_id = 2;
+}
+
+// no response message
+
+/* DeleteRow */
+message DeleteRowRequest {
+    required DeleteRowParameter delete_row_parameter = 1;
+    optional string transaction_id = 2;
+}
+
+// no response message
+
+/* BatchModifyRow */
+message ModifyItem {
+    enum ModifyType {
+        PUT = 0;
+        DELETE = 1;
+    }
+
+    required ModifyType type = 1;
+    optional RowPutChange row_put_change = 2;
+    optional RowDeleteChange row_delete_change = 3;
+}
+
+message BatchModifyRowRequest {
+    required string table_name = 1;
+    repeated ModifyItem modify_items = 2;
+    required string transaction_id = 3;
+}
+
+// no response message
+
+/* MultiGetRow */
+message MultiGetRowRequest {
+    repeated GetRowParameter parameters = 1;
+}
+
+message MultiGetRowResponseItem {
+     required bool is_succeed = 1;
+     optional ErrorMessage error = 2;
+     optional string table_name = 3;
+     optional Row row = 4;
+}
+
+message MultiGetRowResponse {
+     repeated MultiGetRowResponseItem items = 1;
+}
+
+/* MultiPutRow */
+message MultiPutRowRequest {
+    repeated PutRowParameter parameters = 1;
+}
+
+message MultiPutRowResponse {
+    repeated ErrorMessage messages = 1;
+}
+
+/* MultiDeleteRow */
+message MultiDeleteRowRequest {
+    repeated DeleteRowParameter parameters = 1;
+}
+
+message MultiDeleteRowResponse {
+    repeated ErrorMessage messages = 1;
+}
+

@@ -2,3 +2,4 @@ node_modules
 coverage.html
 demo.js
 test/config.json
+test/config.js
