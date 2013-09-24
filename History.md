@@ -1,4 +1,13 @@
 
+0.4.0 / 2013-09-24 
+==================
+
+  * Using `protobuf` protocol API. MultiGetRow(), deleteRow()
+  * putRow() and getRow()
+  * transation, table, tablegroup
+  * fix test cases
+  * fix tests
+
 0.3.0 / 2013-08-20 
 ==================
 

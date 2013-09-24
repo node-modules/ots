@@ -110,14 +110,14 @@ More examples, please see [test/client.test.js](https://github.com/fengmk2/ots/b
 $ git summary 
 
  project  : ots
- repo age : 1 year
- active   : 8 days
- commits  : 22
- files    : 15
+ repo age : 1 year, 6 months
+ active   : 17 days
+ commits  : 38
+ files    : 17
  authors  : 
-    17  fengmk2                 77.3%
-     3  tangyao                 13.6%
-     2  coolme200               9.1%
+    33  fengmk2                 86.8%
+     3  tangyao                 7.9%
+     2  coolme200               5.3%
 ```
 
 ## License 
