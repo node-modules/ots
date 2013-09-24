@@ -451,7 +451,7 @@ describe('client.test.js', function() {
     });
   });
 
-  describe('getRowsByOffset()', function () {
+  describe.skip('getRowsByOffset()', function () {
     before(function (done) {
       // insert 20 users first.
       var ep = EventProxy.create();
@@ -479,6 +479,7 @@ describe('client.test.js', function() {
         });
       }
     });
+
     it('should get 5 users, testuser_0 offset:0 top:5', function(done) {
       client.getRowsByOffset('testuser', { Name: 'uid', Value: 'testuser_0' }, null, 0, 5, 
       function (err, rows) {
@@ -496,6 +497,7 @@ describe('client.test.js', function() {
         done();
       });
     });
+
     it('should get 5 users, testuser_0 offset:5 top:5', function (done) {
       client.getRowsByOffset('testuser', { Name: 'uid', Value: 'testuser_0' }, 
       [ 'firstname', 'age', 'createtime' ], 5, 5, function (err, rows) {
@@ -511,6 +513,7 @@ describe('client.test.js', function() {
         done();
       });
     });
+
     it('should get 0 users, testuser_0 offset:10 top:5', function (done) {
       client.getRowsByOffset('testuser', { Name: 'uid', Value: 'testuser_0' }, 
       [ 'age' ], 10, 5, function (err, rows) {
@@ -519,13 +522,14 @@ describe('client.test.js', function() {
         done();
       });
     });
+
   });
 
-  describe('getRowsByRange()', function() {
-    before(function(done) {
+  describe.skip('getRowsByRange()', function () {
+    before(function (done) {
       // insert 10 urls first.
       var ep = EventProxy.create();
-      ep.after('putDataDone', 10, function() {
+      ep.after('putDataDone', 10, function () {
         done();
       });
       for (var i = 0; i < 10; i++) {
@@ -544,10 +548,10 @@ describe('client.test.js', function() {
       }
     });
     var nextBegin = null;
-    it('should get 6 rows, top:5', function(done) {
+    it('should get 6 rows, top:5', function (done) {
       client.getRowsByRange('testurl', null, 
       { Name: 'md5', Begin: ots.STR_MIN, End: ots.STR_MAX }, null, 6, 
-      function(err, rows) {
+      function (err, rows) {
         should.not.exist(err);
         rows.should.length(6);
         for (var i = rows.length; i--; ) {
@@ -578,7 +582,7 @@ describe('client.test.js', function() {
     });
   });
 
-  describe.only('deleteData()', function () {
+  describe('deleteRow()', function () {
     it('should delete a row', function (done) {
       client.deleteData('testuser', 
         [
@@ -608,9 +612,21 @@ describe('client.test.js', function() {
         done();
       });
     });
+
+    it('should delete row with wrong pk', function (done) {
+      client.deleteRow('testuser', [
+        {Name: 'uid2', Value: 'not-existskey'},
+        {Name: 'firstname', Value: 'yuan'}
+      ], function (err) {
+        should.exist(err);
+        err.name.should.equal('OTSMetaNotMatchError');
+        err.message.should.equal('Primary key meta defined in the request does not match with the table meta.');
+        done();
+      });
+    });
   });
 
-  describe('batchModifyData()', function () {
+  describe.skip('batchModifyRow()', function () {
     var url = 'http://t.cn/abc' + new Date().getTime();
     var urlmd5 = md5(url);
     var transactionID = null;
@@ -650,6 +666,100 @@ describe('client.test.js', function() {
             done();
           });
         });
+      });
+    });
+  });
+
+  describe('multiGetRow()', function () {
+    before(function (done) {
+      // insert 20 users first.
+      var ep = EventProxy.create();
+      ep.after('putDataDone', 5, function () {
+        done();
+      });
+      for (var i = 0; i < 5; i++) {
+        client.putData('testuser', 
+        [ 
+          { Name: 'uid', Value: 'testuser_mget2_' + i }, 
+          { Name: 'firstname', Value: 'name' + i } 
+        ],
+        [
+          { Name: 'lastname', Value: 'lastname' + i },
+          { Name: 'nickname', Value: '花名' + i },
+          { Name: 'age', Value: 20 + i },
+          { Name: 'price', Value: 50.5 + i },
+          { Name: 'enable', Value: i % 2 === 0 },
+          { Name: 'man', Value: i % 2 === 0 },
+          { Name: 'female', Value: i % 3 === 0 },
+          { Name: 'index', Value: i },
+          { Name: 'createtime', Value: new Date().toJSON() },
+        ], function (err, result) {
+          // should.not.exist(err);
+          ep.emit('putDataDone');
+        });
+      }
+    });
+
+    it('should return 5 rows and 5 empty rows with all columns', function (done) {
+      var pks = [];
+      for (var i = 0; i < 10; i++) {
+        pks.push([ 
+          { Name: 'uid', Value: 'testuser_mget2_' + i }, 
+          { Name: 'firstname', Value: 'name' + i } 
+        ]);
+      }
+      client.multiGetRow('testuser', pks, function (err, items) {
+        should.not.exist(err);
+        items.should.length(10);
+        for (var i = 0; i < 5; i++) {
+          var item = items[i];
+          item.isSucceed.should.equal(true);
+          item.error.should.eql({ code: 'OK' });
+          item.tableName.should.equal('testuser');
+          item.row.should.have.keys('uid', 'age', 'createtime', 'enable', 'female', 'index', 'lastname',
+            'man', 'nickname', 'price', 'firstname');
+          item.row.index.should.equal(String(i));
+        }
+        for (var i = 5; i < 10; i++) {
+          var item = items[i];
+          item.isSucceed.should.equal(true);
+          item.error.should.eql({ code: 'OK' });
+          item.tableName.should.equal('testuser');
+          should.not.exist(item.row);
+        }
+        done();
+      });
+    });
+
+    it('should Rows count exceeds the upper limit error', function (done) {
+      var pks = [];
+      for (var i = 0; i < 11; i++) {
+        pks.push([ 
+          { Name: 'uid', Value: 'testuser_' + i }, 
+          { Name: 'firstname', Value: 'name' + i } 
+        ]);
+      }
+      client.multiGetRow('testuser', pks, function (err, items) {
+        should.exist(err);
+        err.name.should.equal('OTSParameterInvalidError');
+        err.message.should.equal('Rows count exceeds the upper limit');
+        done();
+      });
+    });
+
+    it('should pk error', function (done) {
+      var pks = [];
+      for (var i = 0; i < 2; i++) {
+        pks.push([ 
+          { Name: 'uid2', Value: 'testuser_' + i }, 
+          { Name: 'firstname', Value: 'name' + i } 
+        ]);
+      }
+      client.multiGetRow('testuser', pks, function (err, items) {
+        should.exist(err);
+        err.name.should.equal('OTSMetaNotMatchError');
+        err.message.should.equal('Primary key schema from request is not match with table meta: uid2:STRING,firstname:STRING');
+        done();
       });
     });
   });

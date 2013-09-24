@@ -2,6 +2,8 @@
 
 Aliyun [OTS](http://ots.aliyun.com/)(Open Table Service) SDK for [nodejs](http://nodejs.org).
 
+Using `protobuf` protocol API on `ots@0.4.0+`.
+
 ## Support API
 
 * TableGroup
@@ -18,12 +20,13 @@ Aliyun [OTS](http://ots.aliyun.com/)(Open Table Service) SDK for [nodejs](http:/
   * CommitTransaction
   * AbortTransaction
 * DataRow
-  * PutData
-  * DeleteData
-  * BatchModifyData
+  * PutRow
+  * DeleteRow
+  * BatchModifyRow (working)
   * GetRow
-  * GetRowsByRange
-  * GetRowsByOffset
+  * MultiGetRow (Max 10 rows)
+  * GetRowsByRange (working)
+  * GetRowsByOffset (working)
 
 ## Install
 
@@ -67,7 +70,7 @@ client.createTable({
 });
 
 // insert a row
-client.putData('user', 
+client.putRow('user', 
   { Name: 'uid', Value: 'mk2' }, 
   [
     { Name: 'firstname', Value: 'yuan' },
@@ -84,12 +87,12 @@ client.putData('user',
 });
 
 // get a row
-client.getRow('user', { Name: 'uid', Value: 'mk2' }, function(err, row) {
+client.getRow('user', { Name: 'uid', Value: 'mk2' }, function (err, row) {
   console.log(err, row);
 });
 ```
 
-More examples, please see [/test/client.test.js](https://github.com/fengmk2/ots/blob/master/test/client.test.js).
+More examples, please see [test/client.test.js](https://github.com/fengmk2/ots/blob/master/test/client.test.js).
 
 ## Links
 
