@@ -263,17 +263,17 @@ describe('client.test.js', function() {
   });
 
   var now = new Date();
-  describe.only('putData()', function () {
-    it('should insert a row', function (done) {
+  describe('putData()', function () {
+    it('should insert a row success', function (done) {
       client.putData('testuser', 
         [ 
           { Name: 'uid', Value: 'mk2' }, 
           { Name: 'firstname', Value: 'yuan' },
         ],
         [
-          { Name: 'lastname', Value: 'feng\' aerdeng' },
+          { Name: 'lastname', Value: 'feng\' mk2' },
           { Name: 'nickname', Value: '  苏千\n ' },
-          { Name: 'age', Value: 28 },
+          { Name: 'age', Value: 28 }, // int64
           { Name: 'json', Value: '{ "foo": "bar" }' },
           { Name: 'price', Value: 110.5 },
           { Name: 'enable', Value: true },
@@ -282,16 +282,92 @@ describe('client.test.js', function() {
           { Name: 'female', Value: false },
           { Name: 'createtime', Value: now.toJSON() },
         ], 
-      function (err, result) {
+      function (err) {
         should.not.exist(err);
-        result.should.have.property('Code', 'OK');
-        result.should.have.property('RequestID');
+        done();
+      });
+    });
+
+    it('should UPDATE a row error when pk not exists', function (done) {
+      client.putData('testuser', 
+        [ 
+          { Name: 'uid', Value: 'mk2222' }, 
+          { Name: 'firstname', Value: 'yuannot-exsits' },
+        ],
+        [
+          { Name: 'lastname', Value: 'feng\' mk2' },
+          { Name: 'nickname', Value: '  苏千\n ' },
+          { Name: 'age', Value: 28 }, // int64
+          { Name: 'json', Value: '{ "foo": "bar" }' },
+          { Name: 'price', Value: 110.5 },
+          { Name: 'enable', Value: true },
+          { Name: 'man', Value: true },
+          { Name: 'status', Value: null },
+          { Name: 'female', Value: false },
+          { Name: 'createtime', Value: now.toJSON() },
+        ], 
+        'UPDATE',
+      function (err) {
+        should.exist(err);
+        err.name.should.equal('OTSStoragePrimaryKeyNotExistError');
+        err.message.should.equal("Row to update doesn't exist.");
+        done();
+      });
+    });
+
+    it('should INSERT a row error when pk exists', function (done) {
+      client.putData('testuser', 
+        [ 
+          { Name: 'uid', Value: 'mk2' }, 
+          { Name: 'firstname', Value: 'yuan' },
+        ],
+        [
+          { Name: 'lastname', Value: 'feng\' mk2' },
+          { Name: 'nickname', Value: '  苏千\n ' },
+          { Name: 'age', Value: 28 }, // int64
+          { Name: 'json', Value: '{ "foo": "bar" }' },
+          { Name: 'price', Value: 110.5 },
+          { Name: 'enable', Value: true },
+          { Name: 'man', Value: true },
+          { Name: 'status', Value: null },
+          { Name: 'female', Value: false },
+          { Name: 'createtime', Value: now.toJSON() },
+        ], 
+        'INSERT',
+      function (err) {
+        should.exist(err);
+        err.name.should.equal('OTSStoragePrimaryKeyAlreadyExistError');
+        err.message.should.equal("Row to insert does exist.");
         done();
       });
     });
   });
 
-  describe('getRow()', function () {
+  describe.only('getRow()', function () {
+    before(function (done) {
+      client.putData('testuser', 
+        [ 
+          { Name: 'uid', Value: 'mk2' }, 
+          { Name: 'firstname', Value: 'yuan' },
+        ],
+        [
+          { Name: 'lastname', Value: 'feng\' mk2' },
+          { Name: 'nickname', Value: '  苏千\n ' },
+          { Name: 'age', Value: 28 }, // int64
+          { Name: 'json', Value: '{ "foo": "bar" }' },
+          { Name: 'price', Value: 110.5 },
+          { Name: 'enable', Value: true },
+          { Name: 'man', Value: true },
+          { Name: 'status', Value: null },
+          { Name: 'female', Value: false },
+          { Name: 'createtime', Value: now.toJSON() },
+          { Name: 'haha', Value: '哈哈' },
+        ], 
+      function (err) {
+        should.not.exist(err);
+        done();
+      });
+    });
     
     it('should return error', function (done) {
       client.getRow('testuser', 
@@ -301,15 +377,15 @@ describe('client.test.js', function() {
       ], 
       function (err, row) {
         should.exist(err);
-        err.name.should.include('OTSMetaNotMatch');
-        err.data.should.have.property('Error');
-        err.data.Error.should.have.property('RequestID');
-        err.data.Error.should.have.property('HostID');
+        err.name.should.include('OTSMetaNotMatchError');
+        err.message.should.equal('Primary key meta defined in the request does not match with the table meta.');
+        err.should.have.property('serverId');
+        should.not.exist(row);
         done();
       });
     });
 
-    it('should return a row', function (done) {
+    it('should return a row all columns', function (done) {
       client.getRow('testuser', 
       [ 
         { Name: 'uid', Value: 'mk2' }, 
@@ -317,20 +393,20 @@ describe('client.test.js', function() {
       ], 
       function (err, row) {
         should.not.exist(err);
-        // console.log(row);
         row.should.have.keys([ 
-          'uid', 'firstname', 
+          'uid', 'firstname', // should include pk
           'lastname', 'nickname',
           'age', 'price', 'enable',
           'man', 'female', 
           'json', 'status',
-          'createtime'
+          'createtime',
+          'haha'
         ]);
         row.uid.should.equal('mk2');
         row.firstname.should.equal('yuan');
-        row.lastname.should.equal('feng\' aerdeng');
+        row.lastname.should.equal('feng\' mk2');
         row.nickname.should.equal('  苏千\n ');
-        row.age.should.equal(28);
+        row.age.should.equal('28'); // int64, will be auto convert to string by protobuf module
         row.price.should.equal(110.5);
         row.enable.should.equal(true);
         row.man.should.equal(true);
@@ -338,16 +414,36 @@ describe('client.test.js', function() {
         row.status.should.equal('null');
         row.createtime.should.equal(now.toJSON());
         row.json.should.equal('{ "foo": "bar" }');
+        row.haha.should.equal('哈哈');
         done();
       });
     });
 
-    it('should return null when pk not exists', function(done) {
+    it('should return a row some columns', function (done) {
+      client.getRow('testuser', 
+      [ 
+        { Name: 'uid', Value: 'mk2' }, 
+        { Name: 'firstname', Value: 'yuan' },
+      ], 
+      ['uid', 'json'],
+      function (err, row) {
+        should.not.exist(err);
+        row.should.have.keys([ 
+          'uid',
+          'json',
+        ]);
+        row.uid.should.equal('mk2');
+        row.json.should.equal('{ "foo": "bar" }');
+        done();
+      });
+    });
+
+    it('should return null when pk not exists', function (done) {
       client.getRow('testuser', 
       [ 
         { Name: 'uid', Value: 'not-existskey' }, 
         { Name: 'firstname', Value: 'haha' },
-      ], function(err, row) {
+      ], function (err, row) {
         should.not.exist(err);
         should.not.exist(row);
         done();
