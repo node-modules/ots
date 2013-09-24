@@ -117,7 +117,7 @@ describe('client.test.js', function() {
     });
   });
 
-  describe.only('createTable()', function () {
+  describe('createTable()', function () {
 
     it('should return OTSParameterInvalidError when missing primary key', function (done) {
       client.createTable({ TableName: 'test' }, function (err, result) {
@@ -134,7 +134,6 @@ describe('client.test.js', function() {
         PrimaryKey: [
           {'Name': 'uid', 'Type': 'STRING'},
         ],
-        PagingKeyLen: 0,
         View: [
           { 
             'Name': 'view1', 
@@ -147,7 +146,6 @@ describe('client.test.js', function() {
               {'Name':'updatetime', 'Type':'STRING'},
               {'Name':'createtime', 'Type':'STRING'},
             ],
-           'PagingKeyLen': 2
           }
         ]
       }, function (err) {
@@ -159,10 +157,10 @@ describe('client.test.js', function() {
     it('should get "test" table meta success', function (done) {
       client.getTableMeta('test', function (err, meta) {
         should.not.exist(err);
-        console.log('%j', meta)
-        meta.should.have.keys([ 'tableName', 'primaryKeys', 'View' ]);
+        // console.log('%j', meta)
+        meta.should.have.keys([ 'tableName', 'primaryKeys', 'views' ]);
         meta.tableName.should.equal('test');
-        meta.primaryKeys.should.have.keys([ 'name', 'type' ]);
+        meta.primaryKeys[0].should.have.keys([ 'name', 'type' ]);
         // meta.views.PrimaryKey.should.length(3);
         // meta.views.Column.should.length(2);
         // meta.views.Name.should.equal('view1');
@@ -170,8 +168,8 @@ describe('client.test.js', function() {
       });
     });
 
-    it('should list table success', function(done) {
-      client.listTable(function(err, tablenames) {
+    it('should list table success', function (done) {
+      client.listTable(function (err, tablenames) {
         should.not.exist(err);
         tablenames.should.be.an.instanceof(Array);
         tablenames.should.include('test');
@@ -179,27 +177,25 @@ describe('client.test.js', function() {
       });
     });
 
-    it('should create "test" table exist error', function(done) {
+    it('should create "test" table exist error', function (done) {
       client.createTable({ 
         TableName: 'test', 
         PrimaryKey: [ { Name: 'id', Type: 'STRING' } ] 
-      }, function(err, result) {
+      }, function (err, result) {
         should.exist(err);
-        err.name.should.equal('OTSStorageObjectAlreadyExist');
+        err.name.should.equal('OTSStorageObjectAlreadyExistError');
         err.message.should.equal('Requested table/view does exist.');
         done();
       });
     });
 
     it('should delete "test" table success and error', function (done) {
-      client.deleteTable('test', function (err, result) {
+      client.deleteTable('test', function (err) {
         should.not.exist(err);
-        should.exist(result);
-        client.deleteTable('test', function (err, result) {
+        client.deleteTable('test', function (err) {
           should.exist(err);
-          err.name.should.equal('OTSStorageObjectNotExist');
+          err.name.should.equal('OTSStorageObjectNotExistError');
           err.message.should.equal('Requested table/view doesn\'t exist.');
-          should.exist(result);
           done();
         });
       });
@@ -207,66 +203,67 @@ describe('client.test.js', function() {
 
   });
 
-  var transactionID = null;
-  describe('startTransaction()', function () {
-    it('should start and get a transaction id', function (done) {
-      client.startTransaction('testuser', 'foo', function (err, tid) {
-        should.not.exist(err);
-        tid.should.be.a('string');
-        transactionID = tid;
-        done();
-      });
-    });
-  });
-
-  describe('#commitTransaction()', function () {
-    it('should commit a transaction', function (done) {
-      client.commitTransaction(transactionID, function (err, result) {
-        should.not.exist(err);
-        done();
-      });
-    });
-    it('should OTSParameterInvalid when commit a error tranID', function (done) {
-      client.commitTransaction('errorTransactionID', function (err, result) {
-        should.exist(err);
-        err.name.should.equal('OTSParameterInvalid');
-        err.message.should.equal('TransactionID is invalid.');
-        done();
-      });
-    });
-  });
-
-  describe('abortTransaction()', function () {
-    it('should abort a transaction success', function (done) {
-      client.startTransaction('testuser', 'foo-need-to-abort', function (err, tid) {
-        client.abortTransaction(tid, function (err, result) {
+  describe('Transaction', function () {
+    var transactionID = null;
+    describe('startTransaction()', function () {
+      it('should start and get a transaction id', function (done) {
+        client.startTransaction('testuser', 'foo', function (err, tid) {
           should.not.exist(err);
-          result.Code.should.equal('OK');
+          tid.should.be.a('string');
+          transactionID = tid;
           done();
         });
       });
     });
 
-    it('should OTSStorageSessionNotExist when abort a committed tran', function (done) {
-      client.abortTransaction(transactionID, function (err, result) {
-        should.exist(err);
-        err.name.should.equal('OTSStorageSessionNotExist');
-        done();
+    describe('commitTransaction()', function () {
+      it('should commit a transaction', function (done) {
+        client.commitTransaction(transactionID, function (err) {
+          should.not.exist(err);
+          done();
+        });
+      });
+      it('should OTSParameterInvalid when commit a error tranID', function (done) {
+        client.commitTransaction('errorTransactionID', function (err) {
+          should.exist(err);
+          err.name.should.equal('OTSParameterInvalidError');
+          err.message.should.equal('TransactionID is invalid.');
+          done();
+        });
       });
     });
 
-    it('should OTSParameterInvalid when abort a error tranID', function(done) {
-      client.abortTransaction('errorTransactionID', function(err, result) {
-        should.exist(err);
-        err.name.should.equal('OTSParameterInvalid');
-        err.message.should.equal('TransactionID is invalid.');
-        done();
+    describe('abortTransaction()', function () {
+      it('should abort a transaction success', function (done) {
+        client.startTransaction('testuser', 'foo-need-to-abort', function (err, tid) {
+          client.abortTransaction(tid, function (err) {
+            should.not.exist(err);
+            done();
+          });
+        });
+      });
+
+      it('should OTSStorageSessionNotExist when abort a committed tran', function (done) {
+        client.abortTransaction(transactionID, function (err) {
+          should.exist(err);
+          err.name.should.equal('OTSStorageSessionNotExistError');
+          done();
+        });
+      });
+
+      it('should OTSParameterInvalid when abort a error tranID', function (done) {
+        client.abortTransaction('errorTransactionID', function (err) {
+          should.exist(err);
+          err.name.should.equal('OTSParameterInvalidError');
+          err.message.should.equal('TransactionID is invalid.');
+          done();
+        });
       });
     });
   });
 
   var now = new Date();
-  describe('putData()', function () {
+  describe.only('putData()', function () {
     it('should insert a row', function (done) {
       client.putData('testuser', 
         [ 
