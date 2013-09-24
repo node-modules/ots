@@ -46,7 +46,6 @@ describe('client.test.js', function() {
         { 'Name': 'uid', 'Type': 'STRING' },
         { 'Name': 'firstname', 'Type': 'STRING' },
       ],
-      PagingKeyLen: 1,
     }, function (err, result) {
       ep.emit('testuser')
     });
@@ -55,7 +54,6 @@ describe('client.test.js', function() {
       PrimaryKey: [
         { 'Name': 'md5', 'Type': 'STRING' },
       ],
-      PagingKeyLen: 0,
     }, function (err, result) {
       ep.emit('testurl')
     });
@@ -527,30 +525,36 @@ describe('client.test.js', function() {
 
   describe.skip('getRowsByRange()', function () {
     before(function (done) {
-      // insert 10 urls first.
       var ep = EventProxy.create();
       ep.after('putDataDone', 10, function () {
         done();
       });
       for (var i = 0; i < 10; i++) {
-        var url = 'http://t.cn/abcd' + i;
-        client.putData('testurl', 
+        client.putData('testuser', 
         [ 
-          { Name: 'md5', Value: md5(url) }, 
+          { Name: 'uid', Value: 'testuser_range' }, 
+          { Name: 'firstname', Value: 'name' + i } 
         ],
         [
-          { Name: 'url', Value: url },
+          { Name: 'lastname', Value: 'lastname' + i },
+          { Name: 'nickname', Value: '花名' + i },
+          { Name: 'age', Value: 20 + i },
+          { Name: 'price', Value: 50.5 + i },
+          { Name: 'enable', Value: i % 2 === 0 },
+          { Name: 'man', Value: i % 2 === 0 },
+          { Name: 'female', Value: i % 3 === 0 },
           { Name: 'createtime', Value: new Date().toJSON() },
-        ], function(err, result) {
-          should.not.exist(err);
+        ], function (err, result) {
+          // should.not.exist(err);
           ep.emit('putDataDone');
         });
       }
     });
+
     var nextBegin = null;
-    it('should get 6 rows, top:5', function (done) {
-      client.getRowsByRange('testurl', null, 
-      { Name: 'md5', Begin: ots.STR_MIN, End: ots.STR_MAX }, null, 6, 
+    it('should get top 6 rows', function (done) {
+      client.getRowsByRange('testuser', [{Name: 'uid', Value: 'testuser_range'}], 
+      { Name: 'firstname', Begin: '', End: 'name9' }, null, 
       function (err, rows) {
         should.not.exist(err);
         rows.should.length(6);
@@ -564,16 +568,17 @@ describe('client.test.js', function() {
         done();
       });
     });
-    it('should get 5 rows, top:5 next', function(done) {
-      client.getRowsByRange('testurl', null, 
-      { Name: 'md5', Begin: nextBegin, End: ots.STR_MAX }, null, 6, 
-      function(err, rows) {
+
+    it('should get 5 rows, top:5 next', function (done) {
+      client.getRowsByRange('testurl', {Name: 'md5', Value: 'getRowsByRange-'}, 
+      { Name: 'md5', Begin: nextBegin, End: ots.STR_MAX }, ['url'], {limit: 6}, 
+      function (err, rows) {
         should.not.exist(err);
         rows.should.length(6);
         for (var i = rows.length; i--; ) {
           var row = rows[i];
           row.should.have.keys([ 
-            'md5', 'url', 'createtime'
+            'md5', 'url'
           ]);
         }
         nextBegin = rows[rows.length - 1].md5;
@@ -670,9 +675,69 @@ describe('client.test.js', function() {
     });
   });
 
+  describe.only('multiPutRow()', function () {
+    it('should multi put 100 rows success', function (done) {
+      var items = [];
+      for (var i = 0; i < 100; i++) {
+        items.push({
+          primaryKeys: [ 
+            { Name: 'uid', Value: 'testuser_multiPutRow_' + i }, 
+            { Name: 'firstname', Value: 'name' + i } 
+          ],
+          columns: [
+            { Name: 'lastname', Value: 'lastname' + i },
+            { Name: 'nickname', Value: '花名' + i },
+            { Name: 'age', Value: 20 + i },
+            { Name: 'price', Value: 50.5 + i },
+            { Name: 'enable', Value: i % 2 === 0 },
+            { Name: 'man', Value: i % 2 === 0 },
+            { Name: 'female', Value: i % 3 === 0 },
+            { Name: 'index', Value: i },
+            { Name: 'createtime', Value: new Date().toJSON() },
+          ]
+        });
+      }
+      client.multiPutRow('testuser', items, function (err, results) {
+        should.not.exist(err);
+        results.should.length(100);
+        results[0].should.eql({code: 'OK'});
+        done();
+      });
+    });
+
+    it('should multi put 101 rows Rows count exceeds the upper limit', function (done) {
+      var items = [];
+      for (var i = 0; i < 101; i++) {
+        items.push({
+          primaryKeys: [ 
+            { Name: 'uid', Value: 'testuser_multiPutRow_' + i }, 
+            { Name: 'firstname', Value: 'name' + i } 
+          ],
+          columns: [
+            { Name: 'lastname', Value: 'lastname' + i },
+            { Name: 'nickname', Value: '花名' + i },
+            { Name: 'age', Value: 20 + i },
+            { Name: 'price', Value: 50.5 + i },
+            { Name: 'enable', Value: i % 2 === 0 },
+            { Name: 'man', Value: i % 2 === 0 },
+            { Name: 'female', Value: i % 3 === 0 },
+            { Name: 'index', Value: i },
+            { Name: 'createtime', Value: new Date().toJSON() },
+          ]
+        });
+      }
+      client.multiPutRow('testuser', items, function (err, results) {
+        should.exist(err);
+        err.name.should.equal('OTSParameterInvalidError');
+        err.message.should.equal('Rows count exceeds the upper limit');
+        should.not.exists(results);
+        done();
+      });
+    });
+  });
+
   describe('multiGetRow()', function () {
     before(function (done) {
-      // insert 20 users first.
       var ep = EventProxy.create();
       ep.after('putDataDone', 5, function () {
         done();

@@ -21,6 +21,7 @@ Using `protobuf` protocol API on `ots@0.4.0+`.
   * AbortTransaction
 * DataRow
   * PutRow
+  * MultiPutRow (Max 100 rows)
   * DeleteRow
   * BatchModifyRow (working)
   * GetRow
