@@ -675,7 +675,7 @@ describe('client.test.js', function() {
     });
   });
 
-  describe.only('multiPutRow()', function () {
+  describe('multiPutRow()', function () {
     it('should multi put 100 rows success', function (done) {
       var items = [];
       for (var i = 0; i < 100; i++) {
@@ -727,6 +727,84 @@ describe('client.test.js', function() {
         });
       }
       client.multiPutRow('testuser', items, function (err, results) {
+        should.exist(err);
+        err.name.should.equal('OTSParameterInvalidError');
+        err.message.should.equal('Rows count exceeds the upper limit');
+        should.not.exists(results);
+        done();
+      });
+    });
+  });
+
+  describe('multiDeleteRow()', function () {
+    it('should multi delete 100 rows, 50 rows OK all columns success', function (done) {
+      var items = [];
+      for (var i = 50; i < 100; i++) {
+        items.push({
+          primaryKeys: [ 
+            { Name: 'uid', Value: 'testuser_multiPutRow_' + i }, 
+            { Name: 'firstname', Value: 'name' + i } 
+          ]
+        });
+      }
+      client.multiDeleteRow('testuser', items, function (err, results) {
+        should.not.exist(err);
+        results.should.length(50);
+        results[0].should.eql({code: 'OK'});
+        done();
+      });
+    });
+
+    it('should multi delete 100 rows some columns success', function (done) {
+      var items = [];
+      for (var i = 0; i < 100; i++) {
+        items.push({
+          primaryKeys: [ 
+            { Name: 'uid', Value: 'testuser_multiPutRow_' + i }, 
+            { Name: 'firstname', Value: 'name' + i } 
+          ],
+          columnNames: ['man', 'age']
+        });
+      }
+      client.multiDeleteRow('testuser', items, function (err, results) {
+        should.not.exist(err);
+        results.should.length(100);
+        results[0].should.eql({code: 'OK'});
+        done();
+      });
+    });
+
+    it('should multi delete OTSParameterInvalidError', function (done) {
+      var items = [];
+      for (var i = 0; i < 100; i++) {
+        items.push({
+          primaryKeys: [ 
+            { Name: 'uid', Value: 'testuser_multiPutRow_' + i }, 
+            { Name: 'firstname', Value: 'name' + i } 
+          ],
+          columnNames: ['man', 'age-not-exists']
+        });
+      }
+      client.multiDeleteRow('testuser', items, function (err, results) {
+        should.exist(err);
+        err.name.should.equal('OTSParameterInvalidError');
+        err.message.should.equal('Column name age-not-exists is invalid.');
+        done();
+      });
+    });
+
+    it('should multi put 101 rows Rows count exceeds the upper limit', function (done) {
+      var items = [];
+      for (var i = 0; i < 101; i++) {
+        items.push({
+          primaryKeys: [ 
+            { Name: 'uid', Value: 'testuser_multiPutRow_' + i }, 
+            { Name: 'firstname', Value: 'name' + i } 
+          ],
+          columnNames: ['man']
+        });
+      }
+      client.multiDeleteRow('testuser', items, function (err, results) {
         should.exist(err);
         err.name.should.equal('OTSParameterInvalidError');
         err.message.should.equal('Rows count exceeds the upper limit');
