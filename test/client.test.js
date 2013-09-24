@@ -343,7 +343,7 @@ describe('client.test.js', function() {
     });
   });
 
-  describe.only('getRow()', function () {
+  describe('getRow()', function () {
     before(function (done) {
       client.putData('testuser', 
         [ 
@@ -481,7 +481,7 @@ describe('client.test.js', function() {
     });
     it('should get 5 users, testuser_0 offset:0 top:5', function(done) {
       client.getRowsByOffset('testuser', { Name: 'uid', Value: 'testuser_0' }, null, 0, 5, 
-      function(err, rows) {
+      function (err, rows) {
         should.not.exist(err);
         rows.should.length(5);
         for (var i = rows.length; i--; ) {
@@ -496,9 +496,9 @@ describe('client.test.js', function() {
         done();
       });
     });
-    it('should get 5 users, testuser_0 offset:5 top:5', function(done) {
+    it('should get 5 users, testuser_0 offset:5 top:5', function (done) {
       client.getRowsByOffset('testuser', { Name: 'uid', Value: 'testuser_0' }, 
-      [ 'firstname', 'age', 'createtime' ], 5, 5, function(err, rows) {
+      [ 'firstname', 'age', 'createtime' ], 5, 5, function (err, rows) {
         should.not.exist(err);
         rows.should.length(5);
         for (var i = rows.length; i--; ) {
@@ -511,9 +511,9 @@ describe('client.test.js', function() {
         done();
       });
     });
-    it('should get 0 users, testuser_0 offset:10 top:5', function(done) {
+    it('should get 0 users, testuser_0 offset:10 top:5', function (done) {
       client.getRowsByOffset('testuser', { Name: 'uid', Value: 'testuser_0' }, 
-      [ 'age' ], 10, 5, function(err, rows) {
+      [ 'age' ], 10, 5, function (err, rows) {
         should.not.exist(err);
         rows.should.length(0);
         done();
@@ -578,36 +578,33 @@ describe('client.test.js', function() {
     });
   });
 
-  describe('deleteData()', function () {
+  describe.only('deleteData()', function () {
     it('should delete a row', function (done) {
       client.deleteData('testuser', 
         [
           {Name: 'uid', Value: 'mk2'},
           {Name: 'firstname', Value: 'yuan'}
         ],
-      function (err, result) {
+      function (err) {
         should.not.exist(err);
-        result.should.have.property('Code', 'OK');
         // TODO: WTF, delete delay?!
         client.getRow('testuser', [
             {Name: 'uid', Value: 'mk2'},
             {Name: 'firstname', Value: 'yuan'}
           ],
-        function (err, row) {
+        function (err) {
           should.not.exist(err);
-          should.not.exist(row);
           done();
         });
       });
     });
 
     it('should delete by a not exists key', function (done) {
-      client.deleteData('testuser', [
+      client.deleteRow('testuser', [
         {Name: 'uid', Value: 'not-existskey'},
         {Name: 'firstname', Value: 'yuan'}
-      ], function (err, result) {
+      ], function (err) {
         should.not.exist(err);
-        result.should.have.property('Code', 'OK');
         done();
       });
     });
