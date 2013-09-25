@@ -449,91 +449,23 @@ describe('client.test.js', function() {
     });
   });
 
-  describe.skip('getRowsByOffset()', function () {
-    before(function (done) {
-      // insert 20 users first.
-      var ep = EventProxy.create();
-      ep.after('putDataDone', 20, function () {
-        done();
-      });
-      for (var i = 0; i < 20; i++) {
-        client.putData('testuser', 
-        [ 
-          { Name: 'uid', Value: 'testuser_' + (i % 2) }, 
-          { Name: 'firstname', Value: 'name' + i } 
-        ],
-        [
-          { Name: 'lastname', Value: 'lastname' + i },
-          { Name: 'nickname', Value: '花名' + i },
-          { Name: 'age', Value: 20 + i },
-          { Name: 'price', Value: 50.5 + i },
-          { Name: 'enable', Value: i % 2 === 0 },
-          { Name: 'man', Value: i % 2 === 0 },
-          { Name: 'female', Value: i % 3 === 0 },
-          { Name: 'createtime', Value: new Date().toJSON() },
-        ], function (err, result) {
-          // should.not.exist(err);
-          ep.emit('putDataDone');
-        });
-      }
-    });
-
-    it('should get 5 users, testuser_0 offset:0 top:5', function(done) {
-      client.getRowsByOffset('testuser', { Name: 'uid', Value: 'testuser_0' }, null, 0, 5, 
-      function (err, rows) {
-        should.not.exist(err);
-        rows.should.length(5);
-        for (var i = rows.length; i--; ) {
-          var row = rows[i];
-          row.should.have.keys([ 
-            'uid', 'firstname', 
-            'lastname', 'nickname',
-            'age', 'price', 'enable',
-            'man', 'female', 'createtime'
-          ]);
-        }
-        done();
-      });
-    });
-
-    it('should get 5 users, testuser_0 offset:5 top:5', function (done) {
-      client.getRowsByOffset('testuser', { Name: 'uid', Value: 'testuser_0' }, 
-      [ 'firstname', 'age', 'createtime' ], 5, 5, function (err, rows) {
-        should.not.exist(err);
-        rows.should.length(5);
-        for (var i = rows.length; i--; ) {
-          var row = rows[i];
-          row.should.have.keys([ 
-            'firstname', 
-            'age', 'createtime'
-          ]);
-        }
-        done();
-      });
-    });
-
-    it('should get 0 users, testuser_0 offset:10 top:5', function (done) {
-      client.getRowsByOffset('testuser', { Name: 'uid', Value: 'testuser_0' }, 
-      [ 'age' ], 10, 5, function (err, rows) {
-        should.not.exist(err);
-        rows.should.length(0);
-        done();
-      });
-    });
-
-  });
-
-  describe.skip('getRowsByRange()', function () {
+  describe('getRowsByRange()', function () {
     before(function (done) {
       var ep = EventProxy.create();
       ep.after('putDataDone', 10, function () {
-        done();
+        client.getRow('testuser', [
+          { Name: 'uid', Value: 'testuser_range' }, 
+          { Name: 'firstname', Value: '2013090' } 
+        ], function (err, row) {
+          should.not.exist(err);
+          done();
+        });
       });
       for (var i = 0; i < 10; i++) {
-        client.putData('testuser', 
+        client.putRow('testuser', 
         [ 
           { Name: 'uid', Value: 'testuser_range' }, 
-          { Name: 'firstname', Value: 'name' + i } 
+          { Name: 'firstname', Value: '201309' + i } 
         ],
         [
           { Name: 'lastname', Value: 'lastname' + i },
@@ -552,34 +484,33 @@ describe('client.test.js', function() {
     });
 
     var nextBegin = null;
-    it('should get top 6 rows', function (done) {
-      client.getRowsByRange('testuser', [{Name: 'uid', Value: 'testuser_range'}], 
-      { Name: 'firstname', Begin: '', End: 'name9' }, null, 
+    it('should get top 6 rows, limit 6', function (done) {
+      client.getRowsByRange('testuser', {Name: 'uid', Value: 'testuser_range'}, 
+      { Name: 'firstname', Begin: '2013090', End: '2013099' }, null, {limit: 6},
       function (err, rows) {
         should.not.exist(err);
         rows.should.length(6);
         for (var i = rows.length; i--; ) {
           var row = rows[i];
           row.should.have.keys([ 
-            'md5', 'url', 'createtime'
+            'uid', 'firstname', 'lastname', 'nickname', 'age', 'price',
+            'enable', 'man', 'female', 'createtime'
           ]);
         }
-        nextBegin = rows[rows.length - 1].md5;
+        nextBegin = rows[rows.length - 1].firstname;
         done();
       });
     });
 
-    it('should get 5 rows, top:5 next', function (done) {
-      client.getRowsByRange('testurl', {Name: 'md5', Value: 'getRowsByRange-'}, 
-      { Name: 'md5', Begin: nextBegin, End: ots.STR_MAX }, ['url'], {limit: 6}, 
+    it('should get 4 rows(5-9) limit 10', function (done) {
+      client.getRowsByRange('testuser', {Name: 'uid', Value: 'testuser_range'}, 
+      { Name: 'firstname', Begin: '2013095', End: '2013099' }, ['age'], {limit: 10}, 
       function (err, rows) {
         should.not.exist(err);
-        rows.should.length(6);
+        rows.should.length(4);
         for (var i = rows.length; i--; ) {
           var row = rows[i];
-          row.should.have.keys([ 
-            'md5', 'url'
-          ]);
+          row.should.have.keys('age');
         }
         nextBegin = rows[rows.length - 1].md5;
         done();
