@@ -1,39 +1,44 @@
 # OTS SDK [![Build Status](https://secure.travis-ci.org/fengmk2/ots.png)](http://travis-ci.org/fengmk2/ots) [![Coverage Status](https://coveralls.io/repos/fengmk2/ots/badge.png)](https://coveralls.io/r/fengmk2/ots)
 
-Aliyun [OTS](http://ots.aliyun.com/)(Open Table Service) SDK for [nodejs](http://nodejs.org).
+Aliyun [OTS](http://ots.aliyun.com/)(Open Table Service) SDK for [Node.js](http://nodejs.org).
 
 Using `protobuf` protocol API on `ots@0.4.0+`.
+
+**WANNING** If you are still using `XML` protocol API, please use `ots<=0.3.0`.
 
 ## Support API
 
 * TableGroup
-  * CreateTableGroup
-  * DeleteTableGroup
-  * ListTableGroup
+    * CreateTableGroup
+    * DeleteTableGroup
+    * ListTableGroup
 * Table
-  * CreateTable
-  * DeleteTable
-  * GetTableMeta
-  * ListTable
+    * CreateTable
+    * DeleteTable
+    * GetTableMeta
+    * ListTable
 * Transaction
-  * StartTransaction
-  * CommitTransaction
-  * AbortTransaction
+    * StartTransaction
+    * CommitTransaction
+    * AbortTransaction
 * DataRow
-  * PutRow
-  * MultiPutRow (Max 100 rows)
-  * DeleteRow
-  * MultiDeleteRow (Max 100 rows)
-  * BatchModifyRow (working)
-  * GetRow
-  * MultiGetRow (Max 10 rows)
-  * GetRowsByRange
-  * ~~GetRowsByOffset~~ (removed)
+    * PutRow
+    * MultiPutRow (Max 100 rows)
+    * DeleteRow
+    * MultiDeleteRow (Max 100 rows)
+    * BatchModifyRow (working)
+    * GetRow
+    * MultiGetRow (Max 10 rows)
+    * GetRowsByRange
+    * ~~GetRowsByOffset~~ (removed)
 
 ## Install
 
 ```bash
 $ npm install ots
+
+# If you are still using XML protocol API, please use this:
+$ npm install ots@0.3.0
 ```
 
 ## Usage
@@ -113,13 +118,13 @@ $ git summary
 
  project  : ots
  repo age : 1 year, 6 months
- active   : 17 days
- commits  : 38
- files    : 17
+ active   : 18 days
+ commits  : 45
+ files    : 16
  authors  : 
-    33  fengmk2                 86.8%
-     3  tangyao                 7.9%
-     2  coolme200               5.3%
+    40  fengmk2                 88.9%
+     3  tangyao                 6.7%
+     2  coolme200               4.4%
 ```
 
 ## License 
