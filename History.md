@@ -1,4 +1,10 @@
 
+0.4.2 / 2013-09-25 
+==================
+
+  * batchModifyRow() done, remove GetRowsByOffset(). fixed #8
+  * GetRowsByRange() done
+
 0.4.1 / 2013-09-25 
 ==================
 
