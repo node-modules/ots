@@ -1,6 +1,6 @@
 /*!
  * ots - test/client.test.js
- * Copyright(c) 2012 fengmk2 <fengmk2@gmail.com>
+ * Copyright(c) 2012 - 2013 fengmk2 <fengmk2@gmail.com> (http://fengmk2.github.com/)
  * MIT Licensed
  */
 
@@ -8,18 +8,13 @@
  * Module dependencies.
  */
 
-var ots = require('../');
 var should = require('should');
-var config = require('./config.js');
+var utility = require('utility');
 var EventProxy = require('eventproxy').EventProxy;
 var crypto = require('crypto');
 var mm = require('mm');
-
-function md5(s) {
-  var hash = crypto.createHash('md5');
-  hash.update(s);
-  return hash.digest('hex');
-}
+var ots = require('../');
+var config = require('./config.js');
 
 describe('client.test.js', function() {
   var client = ots.createClient({
@@ -454,7 +449,7 @@ describe('client.test.js', function() {
       var ep = EventProxy.create();
       ep.after('putDataDone', 10, function () {
         client.getRow('testuser', [
-          { Name: 'uid', Value: 'testuser_range' }, 
+          { Name: 'uid', Value: 'testuser_range2' }, 
           { Name: 'firstname', Value: '2013090' } 
         ], function (err, row) {
           should.not.exist(err);
@@ -464,7 +459,7 @@ describe('client.test.js', function() {
       for (var i = 0; i < 10; i++) {
         client.putRow('testuser', 
         [ 
-          { Name: 'uid', Value: 'testuser_range' }, 
+          { Name: 'uid', Value: 'testuser_range2' }, 
           { Name: 'firstname', Value: '201309' + i } 
         ],
         [
@@ -485,8 +480,8 @@ describe('client.test.js', function() {
 
     var nextBegin = null;
     it('should get top 6 rows, limit 6', function (done) {
-      client.getRowsByRange('testuser', {Name: 'uid', Value: 'testuser_range'}, 
-      { Name: 'firstname', Begin: '2013090', End: '2013099' }, null, {limit: 6},
+      client.getRowsByRange('testuser', {Name: 'uid', Value: 'testuser_range2'}, 
+      { Name: 'firstname', Begin: ots.STR_MIN, End: ots.STR_MAX }, null, {limit: 6},
       function (err, rows) {
         should.not.exist(err);
         rows.should.length(6);
@@ -502,12 +497,12 @@ describe('client.test.js', function() {
       });
     });
 
-    it('should get 4 rows(5-9) limit 10', function (done) {
-      client.getRowsByRange('testuser', {Name: 'uid', Value: 'testuser_range'}, 
-      { Name: 'firstname', Begin: '2013095', End: '2013099' }, ['age'], {limit: 10}, 
+    it('should get 2 rows[6-8) limit 10', function (done) {
+      client.getRowsByRange('testuser', {Name: 'uid', Value: 'testuser_range2'}, 
+      { Name: 'firstname', Begin: '2013096', End: '2013098' }, ['age'], {limit: 10}, 
       function (err, rows) {
         should.not.exist(err);
-        rows.should.length(4);
+        rows.should.length(2);
         for (var i = rows.length; i--; ) {
           var row = rows[i];
           row.should.have.keys('age');
@@ -562,14 +557,13 @@ describe('client.test.js', function() {
     });
   });
 
-  describe.skip('batchModifyRow()', function () {
+  describe('batchModifyRow()', function () {
     var url = 'http://t.cn/abc' + new Date().getTime();
-    var urlmd5 = md5(url);
+    var urlmd5 = utility.md5(url);
     var transactionID = null;
 
-    after(function(done) {
+    after(function (done) {
       client.abortTransaction(transactionID, function (err) {
-        // console.log(arguments)
         done();
       });
     });
@@ -594,9 +588,8 @@ describe('client.test.js', function() {
             ],
             Checking: 'NO'
           }
-        ], tid, function (err, result) {
+        ], tid, function (err) {
           should.not.exist(err);
-          result.Code.should.equal('OK');
           client.commitTransaction(tid, function (err) {
             should.not.exist(err);
             done();
