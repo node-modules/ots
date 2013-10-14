@@ -30,6 +30,7 @@
     "protobuf": ">=0.8.7"
   },
   "devDependencies": {
+    "pedding": "*",
     "should": "*",
     "mocha": "*",
     "mm": "*",

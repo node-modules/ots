@@ -13,6 +13,7 @@ var utility = require('utility');
 var EventProxy = require('eventproxy').EventProxy;
 var crypto = require('crypto');
 var mm = require('mm');
+var pedding = require('pedding');
 var ots = require('../');
 var config = require('./config.js');
 
@@ -72,7 +73,7 @@ describe('client.test.js', function() {
       client.createTableGroup('testgroup', 'BOOLEAN', function (err) {
         should.exist(err);
         err.name.should.equal('OTSParameterInvalidError');
-        err.message.should.equal('BOOLEAN is an invalid type for primary key.');
+        err.message.should.equal('BOOLEAN is an invalid type for the first column of primary key (partition key).');
         done();
       });
     });
@@ -116,7 +117,7 @@ describe('client.test.js', function() {
       client.createTable({ TableName: 'test' }, function (err, result) {
         should.exist(err);
         err.name.should.equal('OTSParameterInvalidError');
-        err.message.should.equal('The table/view does not specify the primary key.');
+        err.message.should.equal('The Table/View does not specify the primary key.');
         done();
       });
     });
@@ -362,7 +363,9 @@ describe('client.test.js', function() {
       });
     });
     
-    it('should return error', function (done) {
+    it('should return error pk not match', function (done) {
+      done = pedding(2, done);
+
       client.getRow('testuser', 
       [ 
         { Name: 'uid1', Value: 'mk2' }, 
@@ -371,7 +374,22 @@ describe('client.test.js', function() {
       function (err, row) {
         should.exist(err);
         err.name.should.include('OTSMetaNotMatchError');
-        err.message.should.equal('Primary key meta defined in the request does not match with the table meta.');
+        err.message.should.equal('Primary key meta defined in the request does not match with the Table meta.');
+        err.should.have.property('serverId');
+        should.not.exist(row);
+        done();
+      });
+
+      // 顺序错误...
+      client.getRow('testuser', 
+      [ 
+        { Name: 'firstname', Value: 'yuan' },
+        { Name: 'uid', Value: 'mk2' }, 
+      ], 
+      function (err, row) {
+        should.exist(err);
+        err.name.should.include('OTSMetaNotMatchError');
+        err.message.should.equal('Primary key meta defined in the request does not match with the Table meta.');
         err.should.have.property('serverId');
         should.not.exist(row);
         done();
@@ -427,6 +445,90 @@ describe('client.test.js', function() {
         ]);
         row.uid.should.equal('mk2');
         row.json.should.equal('{ "foo": "bar" }');
+        done();
+      });
+    });
+
+    it('should return a row some columns and not exists columns', function (done) {
+      done = pedding(6, done);
+
+      client.getRow('testuser', 
+      [ 
+        { Name: 'uid', Value: 'mk2' }, 
+        { Name: 'firstname', Value: 'yuan' },
+      ], 
+      ['uid', 'json', 'notexists'],
+      function (err, row) {
+        should.not.exist(err);
+        row.should.have.keys([ 
+          'uid',
+          'json',
+        ]);
+        row.uid.should.equal('mk2');
+        row.json.should.equal('{ "foo": "bar" }');
+        done();
+      });
+
+      client.getRow('testuser', 
+      [ 
+        { Name: 'uid', Value: 'mk2' }, 
+        { Name: 'firstname', Value: 'yuan' },
+      ], 
+      ['json', 'notexists'],
+      function (err, row) {
+        should.not.exist(err);
+        row.should.have.keys([ 
+          'json',
+        ]);
+        row.json.should.equal('{ "foo": "bar" }');
+        done();
+      });
+
+      client.getRow('testuser', 
+      [ 
+        { Name: 'uid', Value: 'mk2' }, 
+        { Name: 'firstname', Value: 'yuan' },
+      ], 
+      ['notjson', 'notexists'],
+      function (err, row) {
+        should.not.exist(err);
+        should.not.exist(row);
+        done();
+      });
+
+      client.getRow('testuser', 
+      [ 
+        { Name: 'uid', Value: 'mk2' }, 
+        { Name: 'firstname', Value: 'yuan' },
+      ], 
+      ['uid', 'notexists'],
+      function (err, row) {
+        should.not.exist(err);
+        row.should.eql({uid: 'mk2'});
+        done();
+      });
+
+      client.getRow('testuser', 
+      [ 
+        { Name: 'uid', Value: 'mk2' }, 
+        { Name: 'firstname', Value: 'yuan' },
+      ], 
+      ['firstname', 'notexists'],
+      function (err, row) {
+        should.not.exist(err);
+        row.should.eql({firstname: 'yuan'});
+        done();
+      });
+
+      client.getRow('testuser', 
+      [ 
+        { Name: 'uid', Value: 'mk2' }, 
+        { Name: 'firstname', Value: 'yuan' },
+      ], 
+      ['firstname', 'uid'],
+      function (err, row) {
+        should.not.exist(err);
+        row.should.eql({firstname: 'yuan', uid: 'mk2'});
         done();
       });
     });
@@ -551,7 +653,7 @@ describe('client.test.js', function() {
       ], function (err) {
         should.exist(err);
         err.name.should.equal('OTSMetaNotMatchError');
-        err.message.should.equal('Primary key meta defined in the request does not match with the table meta.');
+        err.message.should.equal('Primary key meta defined in the request does not match with the Table meta.');
         done();
       });
     });
@@ -631,7 +733,7 @@ describe('client.test.js', function() {
 
     it('should multi put 101 rows Rows count exceeds the upper limit', function (done) {
       var items = [];
-      for (var i = 0; i < 101; i++) {
+      for (var i = 0; i < 1001; i++) {
         items.push({
           primaryKeys: [ 
             { Name: 'uid', Value: 'testuser_multiPutRow_' + i }, 
@@ -719,7 +821,7 @@ describe('client.test.js', function() {
 
     it('should multi put 101 rows Rows count exceeds the upper limit', function (done) {
       var items = [];
-      for (var i = 0; i < 101; i++) {
+      for (var i = 0; i < 1001; i++) {
         items.push({
           primaryKeys: [ 
             { Name: 'uid', Value: 'testuser_multiPutRow_' + i }, 
@@ -800,7 +902,7 @@ describe('client.test.js', function() {
 
     it('should Rows count exceeds the upper limit error', function (done) {
       var pks = [];
-      for (var i = 0; i < 11; i++) {
+      for (var i = 0; i < 101; i++) {
         pks.push([ 
           { Name: 'uid', Value: 'testuser_' + i }, 
           { Name: 'firstname', Value: 'name' + i } 
