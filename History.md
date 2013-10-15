@@ -1,4 +1,10 @@
 
+0.4.4 / 2013-10-15 
+==================
+
+  * use protobuf-ali, make int64 to number when it small
+  * add more get rows by range cases
+
 0.4.3 / 2013-10-15 
 ==================
 

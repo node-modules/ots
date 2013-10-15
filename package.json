@@ -1,6 +1,6 @@
 {
   "name": "ots",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "description": "Aliyun OTS(Open Table Service) nodejs SDK. http://ots.aliyun.com/",
   "keywords": ["ots", "aliyun", "database", "nosql"],
   "author": "fengmk2 <fengmk2@gmail.com> (http://github.com/fengmk2)",
@@ -19,7 +19,7 @@
       }
     },
     "travis-cov": {
-      "threshold": 80
+      "threshold": 89
     }
   },
   "dependencies": {
