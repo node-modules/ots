@@ -10,6 +10,7 @@
 
 var should = require('should');
 var utility = require('utility');
+var urllib = require('urllib');
 var EventProxy = require('eventproxy').EventProxy;
 var crypto = require('crypto');
 var mm = require('mm');
@@ -98,6 +99,34 @@ describe('client.test.js', function() {
         groups.should.be.an.instanceof(Array);
         groups.length.should.above(0);
         // groups.should.include('testgroup');
+        done();
+      });
+    });
+
+    it('should return ErrorMessage.parse Malformed message OTSMalformedErrorMessageError', function (done) {
+      mm.data(urllib, 'request', new Buffer('wrong format'));
+      client.listTableGroup(function (err, groups) {
+        should.exist(err);
+        err.name.should.equal('OTSMalformedErrorMessageError');
+        err.message.should.equal('Malformed message');
+        err.data.should.equal('wrong format');
+        should.not.exist(groups);
+        done();
+      });
+    });
+
+    it('should return pbResponse.parse Malformed message OTSMalformedListTableGroupMessageError', function (done) {
+      mm(urllib, 'request', function (url, options, callback) {
+        process.nextTick(function () {
+          callback(null, new Buffer('wrong response format'), {statusCode: 200});
+        });
+      });
+      client.listTableGroup(function (err, groups) {
+        should.exist(err);
+        err.name.should.equal('OTSMalformedListTableGroupMessageError');
+        err.message.should.equal('Malformed message');
+        err.data.should.equal('wrong response format');
+        should.not.exist(groups);
         done();
       });
     });
