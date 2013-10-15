@@ -269,9 +269,11 @@ describe('client.test.js', function() {
   });
 
   var now = new Date();
-  describe('putData()', function () {
+  var MAX_SAFE_INT = Math.pow(2, 53) - 1;
+  var MIN_SAFE_INT = -MAX_SAFE_INT;
+  describe('putRow()', function () {
     it('should insert a row success', function (done) {
-      client.putData('testuser', 
+      client.putRow('testuser', 
         [ 
           { Name: 'uid', Value: 'mk2' }, 
           { Name: 'firstname', Value: 'yuan' },
@@ -287,6 +289,16 @@ describe('client.test.js', function() {
           { Name: 'status', Value: null },
           { Name: 'female', Value: false },
           { Name: 'createtime', Value: now.toJSON() },
+          { Name: 'zero', Value: 0 },
+          { Name: 'maxSafeInt', Value: MAX_SAFE_INT },
+          { Name: 'minSafeInt', Value: MIN_SAFE_INT },
+          { Name: 'unSafeInt1', Value: '1' + MAX_SAFE_INT },
+          { Name: 'unSafeInt2', Value: 1 + MAX_SAFE_INT },
+          { Name: 'unSafeInt3', Value: 3 + MAX_SAFE_INT },
+          { Name: 'unSafeInt4', Value: MIN_SAFE_INT - 1 },
+          { Name: 'unSafeInt5', Value: MIN_SAFE_INT - 2 },
+          { Name: 'unSafeInt6', Value: MIN_SAFE_INT - 3 },
+          { Name: 'unSafeInt7', Value: MIN_SAFE_INT + '123' },
         ], 
       function (err) {
         should.not.exist(err);
@@ -295,7 +307,7 @@ describe('client.test.js', function() {
     });
 
     it('should UPDATE a row error when pk not exists', function (done) {
-      client.putData('testuser', 
+      client.putRow('testuser', 
         [ 
           { Name: 'uid', Value: 'mk2222' }, 
           { Name: 'firstname', Value: 'yuannot-exsits' },
@@ -322,7 +334,7 @@ describe('client.test.js', function() {
     });
 
     it('should INSERT a row error when pk exists', function (done) {
-      client.putData('testuser', 
+      client.putRow('testuser', 
         [ 
           { Name: 'uid', Value: 'mk2' }, 
           { Name: 'firstname', Value: 'yuan' },
@@ -423,13 +435,16 @@ describe('client.test.js', function() {
           'man', 'female', 
           'json', 'status',
           'createtime',
-          'haha'
+          'haha',
+          'maxSafeInt', 'minSafeInt', 'zero',
+          'unSafeInt1', 'unSafeInt2', 'unSafeInt3', 'unSafeInt4',
+          'unSafeInt5', 'unSafeInt6', 'unSafeInt7',
         ]);
         row.uid.should.equal('mk2');
         row.firstname.should.equal('yuan');
         row.lastname.should.equal('feng\' mk2');
         row.nickname.should.equal('  苏千\n ');
-        row.age.should.equal('28'); // int64, will be auto convert to string by protobuf module
+        row.age.should.equal(28);
         row.price.should.equal(110.5);
         row.enable.should.equal(true);
         row.man.should.equal(true);
@@ -438,6 +453,17 @@ describe('client.test.js', function() {
         row.createtime.should.equal(now.toJSON());
         row.json.should.equal('{ "foo": "bar" }');
         row.haha.should.equal('哈哈');
+
+        row.zero.should.equal(0);
+        row.maxSafeInt.should.equal(9007199254740991);
+        row.minSafeInt.should.equal(-9007199254740991);
+        row.unSafeInt1.should.equal('19007199254740991');
+        row.unSafeInt2.should.equal('9007199254740992');
+        row.unSafeInt3.should.equal('9007199254740994');
+        row.unSafeInt4.should.equal('-9007199254740992');
+        row.unSafeInt5.should.equal('-9007199254740992');
+        row.unSafeInt6.should.equal('-9007199254740994');
+        row.unSafeInt7.should.equal('-9007199254740991123');
         done();
       });
     });
@@ -926,7 +952,7 @@ describe('client.test.js', function() {
           item.tableName.should.equal('testuser');
           item.row.should.have.keys('uid', 'age', 'createtime', 'enable', 'female', 'index', 'lastname',
             'man', 'nickname', 'price', 'firstname');
-          item.row.index.should.equal(String(i));
+          item.row.index.should.equal(i);
         }
         for (var i = 5; i < 10; i++) {
           var item = items[i];

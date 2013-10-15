@@ -27,7 +27,7 @@
     "urllib": ">=0.5.2",
     "cache-dns": ">=0.0.2",
     "utility": ">=0.1.1",
-    "protobuf": ">=0.8.7"
+    "protobuf-ali": ">=0.8.7"
   },
   "devDependencies": {
     "pedding": "*",
