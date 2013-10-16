@@ -1,9 +1,21 @@
+/*!
+ * ots - benchmark/parse.js
+ * Copyright(c) 2013 fengmk2 <fengmk2@gmail.com> (http://fengmk2.github.com)
+ * MIT Licensed
+ */
+
+"use strict";
+
+/**
+ * Module dependencies.
+ */
+
 var Benchmark = require('benchmark');
 var xml2json = require('xml2json');
 var xml2jsonEDP = require('xml2json-edp');
 var fs = require('fs');
 var path = require('path');
-var Schema = require('protobuf').Schema;
+var Schema = require('protobuf-ali').Schema;
 
 var schema = new Schema(fs.readFileSync(path.join(path.dirname(__dirname), 'ots_protocol.desc')));
 var Row = schema['com.aliyun.cloudservice.ots.Row'];
@@ -89,8 +101,8 @@ suite
   JSON.parse(JSONString);
 })
 
-.on('cycle', function (event, bench) {
-  console.log(String(bench));
+.on('cycle', function (event) {
+  console.log(String(event.target));
 })
 .on('complete', function () {
   console.log('Fastest is ' + this.filter('fastest').pluck('name'));

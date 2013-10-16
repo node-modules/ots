@@ -30,6 +30,8 @@
     "protobuf-ali": ">=0.8.7"
   },
   "devDependencies": {
+    "benchmark": "*",
+    "ab": "*",
     "pedding": "*",
     "should": "*",
     "mocha": "*",
