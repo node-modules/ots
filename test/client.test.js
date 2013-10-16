@@ -240,11 +240,23 @@ describe('client.test.js', function() {
 
   describe('Transaction', function () {
     var transactionID = null;
+    after(function (done) {
+      if (transactionID) {
+        client.abortTransaction(transactionID, function (err) {
+          done();
+        });
+      } else {
+        done();
+      }
+    });
+
     describe('startTransaction()', function () {
       it('should start and get a transaction id', function (done) {
-        client.startTransaction('testuser', 'foo', function (err, tid) {
+        client.startTransaction('testuser', 'foo1', function (err, tid) {
           should.not.exist(err);
-          tid.should.be.a('string');
+          should.exist(tid);
+          tid.length.should.be.above(32);
+          tid.should.be.a.String;
           transactionID = tid;
           done();
         });
@@ -767,7 +779,7 @@ describe('client.test.js', function() {
     it('should delete "' + url + '" and insert new', function (done) {
       client.startTransaction('testurl', urlmd5, function (err, tid) {
         should.not.exist(err);
-        tid.should.be.a('string');
+        tid.should.be.a.String;
         transactionID = tid;
         client.batchModifyData('testurl', 
         [

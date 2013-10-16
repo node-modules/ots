@@ -12,12 +12,13 @@
 
 var utility = require('utility');
 var ab = require('ab');
+var Agent = require('agentkeepalive');
 var ots = require('../');
 var config = require('../test/config');
 
 var method = process.argv[2];
 if (!method) {
-  console.log('$ node bench.js [get|put] [concurrency=5] [requests=10000]');
+  console.log('$ node bench.js [get|put] [concurrency=5] [requests=10000] [keepalive=1]');
   process.exit(0);
 }
 
@@ -28,12 +29,15 @@ var options = {
   requests: requests
 };
 
-console.log('%s() benchmark with concurrency: %d, requests: %d\n', method, concurrency, requests);
+var keepalive = process.argv[5] === '1';
+
+console.log('%s() benchmark with concurrency: %d, requests: %d, keepalive: %s\n', method, concurrency, requests, keepalive);
 
 var client = ots.createClient({
   accessID: config.accessID,
   accessKey: config.accessKey,
-  APIHost: config.APIHost
+  APIHost: config.APIHost,
+  agent: keepalive ? new Agent() : null
 });
 
 var key = 'ots-bench-key';
@@ -43,12 +47,14 @@ function get() {
   ab.run(function (callback) {
     var i = index++;
     var uid = utility.md5(key + i);
-    client.getRow('testuser', [{Name: 'uid', Value: uid}, {Name: 'firstname', Value: 'yuan-' + i}], 
+    client.getRow('tcif', [{Name: 'md5', Value: uid}, {Name: 'user_id', Value: i}], 
     function (err, row) {
       callback(err, row && row.uid === uid && row.firstname === ('yuan-' + i));
     });
   }, options).on('end', function () {
     client.close();
+  }).on('error', function (err) {
+    console.error(err);
   });
 }
 
@@ -57,10 +63,10 @@ function put() {
   ab.run(function (callback) {
     var i = index++;
     var uid = utility.md5(key + i);
-    client.putRow('testuser', 
+    client.putRow('tcif', 
       [ 
-        { Name: 'uid', Value: uid }, 
-        { Name: 'firstname', Value: 'yuan-' + i },
+        { Name: 'md5', Value: uid }, 
+        { Name: 'user_id', Value: i },
       ],
       [
         { Name: 'lastname', Value: 'feng\' mk2' },
@@ -81,13 +87,18 @@ function put() {
     );
   }, options).on('end', function () {
     client.close();
+  }).on('error', function (err) {
+    console.error(err);
   });
 }
 var set = put;
 
-client.listTable(function (err, tables) {
-  if (err) {
-    throw err;
-  }
-  eval(method + '();');
+client.getTableMeta('tcif', function (err, result) {
+  console.log(err, result);
+  client.listTable(function (err, tables) {
+    if (err) {
+      throw err;
+    }
+    eval(method + '();');
+  });
 });
