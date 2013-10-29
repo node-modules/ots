@@ -1,4 +1,11 @@
 
+0.4.6 / 2013-10-29 
+==================
+
+  * support vip manager
+  * improve benchmark codes
+  * add benchmark script
+
 0.4.5 / 2013-10-15 
 ==================
 
