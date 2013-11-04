@@ -194,11 +194,38 @@ describe('client.test.js', function() {
         {Name: 'md5', Value: '000e'},
         {Name: 'user_id', Type: 'INTEGER', Value: '2523370015105311489'},
       ];
+      done = pedding(3, done);
       client.putRow('tcif_user_wt_fans_base', rowkey, [{Name: 'name', Value: 'suqian'}], function (err, result) {
         should.not.exist(err);
         client.getRow('tcif_user_wt_fans_base', rowkey, function (err, data) {
           should.not.exist(err);
           data.should.eql({ name: 'suqian', md5: '000e', user_id: '2523370015105311489' });
+          done();
+        });
+      });
+
+      var rowkey2 = [
+        {Name: 'md5', Value: '1234'},
+        {Name: 'user_id', Type: 'INTEGER', Value: Math.pow(2, 53)},
+      ];
+      client.putRow('tcif_user_wt_fans_base', rowkey2, [{Name: 'name', Value: 'suqian'}], function (err, result) {
+        should.not.exist(err);
+        client.getRow('tcif_user_wt_fans_base', rowkey2, function (err, data) {
+          should.not.exist(err);
+          data.should.eql({ name: 'suqian', md5: '1234', user_id: Math.pow(2, 53) });
+          done();
+        });
+      });
+
+      var rowkey3 = [
+        {Name: 'md5', Value: '1234'},
+        {Name: 'user_id', Type: 'INTEGER', Value: 100},
+      ];
+      client.putRow('tcif_user_wt_fans_base', rowkey3, [{Name: 'name', Value: 'suqian'}], function (err, result) {
+        should.not.exist(err);
+        client.getRow('tcif_user_wt_fans_base', rowkey3, function (err, data) {
+          should.not.exist(err);
+          data.should.eql({ name: 'suqian', md5: '1234', user_id: 100 });
           done();
         });
       });
