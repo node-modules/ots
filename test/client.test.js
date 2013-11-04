@@ -163,7 +163,7 @@ describe('client.test.js', function() {
       });
     });
 
-    it('should create "test" table success', function(done) {
+    it('should create "test" table success', function (done) {
       client.createTable({
         TableName: 'test',
         PrimaryKey: [
@@ -186,6 +186,21 @@ describe('client.test.js', function() {
       }, function (err) {
         should.not.exist(err);
         done();
+      });
+    });
+
+    it('should create "testbigint" table success', function (done) {
+      var rowkey = [
+        {Name: 'md5', Value: '000e'},
+        {Name: 'user_id', Type: 'INTEGER', Value: '2523370015105311489'},
+      ];
+      client.putRow('tcif_user_wt_fans_base', rowkey, [{Name: 'name', Value: 'suqian'}], function (err, result) {
+        should.not.exist(err);
+        client.getRow('tcif_user_wt_fans_base', rowkey, function (err, data) {
+          should.not.exist(err);
+          data.should.eql({ name: 'suqian', md5: '000e', user_id: '2523370015105311489' });
+          done();
+        });
       });
     });
 
