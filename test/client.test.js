@@ -28,17 +28,18 @@ describe('client.test.js', function() {
   afterEach(mm.restore);
 
   before(function (done) {
-    var ep = EventProxy.create('testgroup', 'test', 'testuser', 'testurl', 'testuser_range', function () {
+    var ep = EventProxy.create('testgroup', 'test', 'testuser', 'testuser_bigint', 'testurl', 'testuser_range', 
+    function () {
       done();
     });
-    client.deleteTableGroup('testgroup', function (err) {
+    client.deleteTableGroup('node_ots_client_testgroup', function (err) {
       ep.emit('testgroup');
     });
-    client.deleteTable('test', function (err) {
+    client.deleteTable('node_ots_client_test', function (err) {
       ep.emit('test');
     });
     client.createTable({
-      TableName: 'testuser',
+      TableName: 'node_ots_client_testuser',
       PrimaryKey: [
         { 'Name': 'uid', 'Type': 'STRING' },
         { 'Name': 'firstname', 'Type': 'STRING' },
@@ -48,7 +49,16 @@ describe('client.test.js', function() {
     });
 
     client.createTable({
-      TableName: 'testuser_range',
+      TableName: 'node_ots_client_testuser_bigint',
+      PrimaryKey: [
+        { 'Name': 'uid', 'Type': 'INTEGER' },
+      ],
+    }, function (err, result) {
+      ep.emit('testuser_bigint')
+    });
+
+    client.createTable({
+      TableName: 'node_ots_client_testuser_range',
       PrimaryKey: [
         { Name: 'uid_md5', Type: 'STRING' },
         { Name: 'uid', Type: 'STRING' },
@@ -59,7 +69,7 @@ describe('client.test.js', function() {
     });
 
     client.createTable({
-      TableName: 'testurl',
+      TableName: 'node_ots_client_testurl',
       PrimaryKey: [
         { 'Name': 'md5', 'Type': 'STRING' },
       ],
@@ -70,9 +80,9 @@ describe('client.test.js', function() {
 
   describe('createTableGroup()', function () {
     it('should create a group success', function (done) {
-      client.createTableGroup('testgroup', 'STRING', function (err) {
+      client.createTableGroup('node_ots_client_testgroup', 'STRING', function (err) {
         should.not.exist(err);
-        client.createTableGroup('testgroup', 'STRING', function (err) {
+        client.createTableGroup('node_ots_client_testgroup', 'STRING', function (err) {
           should.exist(err);
           err.name.should.equal('OTSStorageObjectAlreadyExistError');
           err.message.should.equal('Requested table/view does exist.');
@@ -83,7 +93,7 @@ describe('client.test.js', function() {
     });
 
     it('should create a group with wrong key type', function (done) {
-      client.createTableGroup('testgroup', 'BOOLEAN', function (err) {
+      client.createTableGroup('node_ots_client_testgroup', 'BOOLEAN', function (err) {
         should.exist(err);
         err.name.should.equal('OTSParameterInvalidError');
         err.message.should.equal('BOOLEAN is an invalid type for the first column of primary key (partition key).');
@@ -109,7 +119,6 @@ describe('client.test.js', function() {
         should.exist(err);
         err.name.should.equal('OTSMalformedErrorMessageError');
         err.message.should.equal('Malformed message');
-        err.data.should.equal('wrong format');
         should.not.exist(groups);
         done();
       });
@@ -125,7 +134,6 @@ describe('client.test.js', function() {
         should.exist(err);
         err.name.should.equal('OTSMalformedListTableGroupMessageError');
         err.message.should.equal('Malformed message');
-        err.data.should.equal('wrong response format');
         should.not.exist(groups);
         done();
       });
@@ -134,18 +142,21 @@ describe('client.test.js', function() {
 
   describe('deleteTableGroup()', function () {
     before(function (done) {
-      client.createTableGroup('testgroup', 'STRING', function (err) {
+      client.createTableGroup('node_ots_client_testgroup', 'STRING', function (err) {
         done();
       });
     });
 
     it('should delete a group', function (done) {
-      client.deleteTableGroup('testgroup', function (err) {
+      client.deleteTableGroup('node_ots_client_testgroup', function (err) {
         should.not.exist(err);
-        client.deleteTableGroup('testgroup', function (err) {
+        client.deleteTableGroup('node_ots_client_testgroup', function (err) {
           should.exist(err);
           err.name.should.equal('OTSStorageObjectNotExistError');
           err.message.should.equal('Requested table/view doesn\'t exist.');
+          console.log(err)
+          err.url.should.include('&requestid=');
+          err.url.should.include('&hostid=');
           done();
         });
       });
@@ -155,7 +166,7 @@ describe('client.test.js', function() {
   describe('createTable()', function () {
 
     it('should return OTSParameterInvalidError when missing primary key', function (done) {
-      client.createTable({ TableName: 'test' }, function (err, result) {
+      client.createTable({ TableName: 'node_ots_client_test' }, function (err, result) {
         should.exist(err);
         err.name.should.equal('OTSParameterInvalidError');
         err.message.should.equal('The Table/View does not specify the primary key.');
@@ -163,9 +174,9 @@ describe('client.test.js', function() {
       });
     });
 
-    it('should create "test" table success', function (done) {
+    it('should create "node_ots_client_test" table success', function (done) {
       client.createTable({
-        TableName: 'test',
+        TableName: 'node_ots_client_test',
         PrimaryKey: [
           {'Name': 'uid', 'Type': 'STRING'},
         ],
@@ -189,54 +200,75 @@ describe('client.test.js', function() {
       });
     });
 
-    it('should create "testbigint" table success', function (done) {
+    it('should create "node_ots_client_testuser_bigint" table success', function (done) {
+      done = pedding(4, done);
+
       var rowkey = [
-        {Name: 'md5', Value: '000e'},
-        {Name: 'user_id', Type: 'INTEGER', Value: '2523370015105311489'},
+        {Name: 'uid', Type: 'INTEGER', Value: '2523370015105311489'},
       ];
-      done = pedding(3, done);
-      client.putRow('tcif_user_wt_fans_base', rowkey, [{Name: 'name', Value: 'suqian'}], function (err, result) {
+      client.putRow('node_ots_client_testuser_bigint', rowkey, [{Name: 'name', Value: 'suqian'}], 
+      function (err, result) {
         should.not.exist(err);
-        client.getRow('tcif_user_wt_fans_base', rowkey, function (err, data) {
+        client.getRow('node_ots_client_testuser_bigint', rowkey, function (err, data) {
           should.not.exist(err);
-          data.should.eql({ name: 'suqian', md5: '000e', user_id: '2523370015105311489' });
+          data.should.eql({ name: 'suqian', uid: '2523370015105311489' });
+          data.uid.should.be.a.String;
+          data.uid.should.equal('2523370015105311489');
+          done();
+        });
+      });
+
+      var rowkey4 = [
+        {Name: 'uid', Value: 2523370015105311489},
+      ];
+      // should got wrong value when number to long
+      client.putRow('node_ots_client_testuser_bigint', rowkey4, [{Name: 'name', Value: 'suqian'}], 
+      function (err, result) {
+        should.not.exist(err);
+        client.getRow('node_ots_client_testuser_bigint', rowkey4, function (err, data) {
+          should.not.exist(err);
+          data.uid.should.not.equal('2523370015105311489');
           done();
         });
       });
 
       var rowkey2 = [
-        {Name: 'md5', Value: '1234'},
-        {Name: 'user_id', Type: 'INTEGER', Value: Math.pow(2, 53)},
+        {Name: 'uid', Type: 'INTEGER', Value: Math.pow(2, 53)},
       ];
-      client.putRow('tcif_user_wt_fans_base', rowkey2, [{Name: 'name', Value: 'suqian'}], function (err, result) {
+      client.putRow('node_ots_client_testuser_bigint', rowkey2, [{Name: 'name', Value: 'suqian'}], 
+      function (err, result) {
         should.not.exist(err);
-        client.getRow('tcif_user_wt_fans_base', rowkey2, function (err, data) {
+        client.getRow('node_ots_client_testuser_bigint', rowkey2, function (err, data) {
           should.not.exist(err);
-          data.should.eql({ name: 'suqian', md5: '1234', user_id: Math.pow(2, 53) });
+          data.should.eql({ name: 'suqian', uid: Math.pow(2, 53) });
+          data.uid.should.be.a.String;
+          data.uid.should.equal(String(Math.pow(2, 53)));
           done();
         });
       });
 
       var rowkey3 = [
-        {Name: 'md5', Value: '1234'},
-        {Name: 'user_id', Type: 'INTEGER', Value: 100},
+        {Name: 'uid', Type: 'INTEGER', Value: 100},
       ];
-      client.putRow('tcif_user_wt_fans_base', rowkey3, [{Name: 'name', Value: 'suqian'}], function (err, result) {
+      client.putRow('node_ots_client_testuser_bigint', rowkey3, [{Name: 'name', Value: 'suqian'}], 
+      function (err, result) {
         should.not.exist(err);
-        client.getRow('tcif_user_wt_fans_base', rowkey3, function (err, data) {
+        client.getRow('node_ots_client_testuser_bigint', rowkey3, function (err, data) {
           should.not.exist(err);
-          data.should.eql({ name: 'suqian', md5: '1234', user_id: 100 });
+          data.should.eql({ name: 'suqian', uid: 100 });
+          data.uid.should.be.a.Number;
+          data.uid.should.equal(100);
           done();
         });
       });
     });
 
-    it('should get "test" table meta success', function (done) {
-      client.getTableMeta('test', function (err, meta) {
+    it('should get "node_ots_client_test" table meta success', function (done) {
+      client.getTableMeta('node_ots_client_test', function (err, meta) {
         should.not.exist(err);
         // console.log('%j', meta)
         meta.should.have.keys([ 'tableName', 'primaryKeys', 'views' ]);
-        meta.tableName.should.equal('test');
+        meta.tableName.should.equal('node_ots_client_test');
         meta.primaryKeys[0].should.have.keys([ 'name', 'type' ]);
         // meta.views.PrimaryKey.should.length(3);
         // meta.views.Column.should.length(2);
@@ -249,14 +281,14 @@ describe('client.test.js', function() {
       client.listTable(function (err, tablenames) {
         should.not.exist(err);
         tablenames.should.be.an.instanceof(Array);
-        tablenames.should.include('test');
+        tablenames.should.include('node_ots_client_test');
         done();
       });
     });
 
-    it('should create "test" table exist error', function (done) {
+    it('should create "node_ots_client_test" table exist error', function (done) {
       client.createTable({ 
-        TableName: 'test', 
+        TableName: 'node_ots_client_test', 
         PrimaryKey: [ { Name: 'id', Type: 'STRING' } ] 
       }, function (err, result) {
         should.exist(err);
@@ -266,10 +298,10 @@ describe('client.test.js', function() {
       });
     });
 
-    it('should delete "test" table success and error', function (done) {
-      client.deleteTable('test', function (err) {
+    it('should delete "node_ots_client_test" table success and error', function (done) {
+      client.deleteTable('node_ots_client_test', function (err) {
         should.not.exist(err);
-        client.deleteTable('test', function (err) {
+        client.deleteTable('node_ots_client_test', function (err) {
           should.exist(err);
           err.name.should.equal('OTSStorageObjectNotExistError');
           err.message.should.equal('Requested table/view doesn\'t exist.');
@@ -294,7 +326,7 @@ describe('client.test.js', function() {
 
     describe('startTransaction()', function () {
       it('should start and get a transaction id', function (done) {
-        client.startTransaction('testuser', 'foo1', function (err, tid) {
+        client.startTransaction('node_ots_client_testuser', 'foo1', function (err, tid) {
           should.not.exist(err);
           should.exist(tid);
           tid.length.should.be.above(32);
@@ -324,7 +356,7 @@ describe('client.test.js', function() {
 
     describe('abortTransaction()', function () {
       it('should abort a transaction success', function (done) {
-        client.startTransaction('testuser', 'foo-need-to-abort', function (err, tid) {
+        client.startTransaction('node_ots_client_testuser', 'foo-need-to-abort', function (err, tid) {
           client.abortTransaction(tid, function (err) {
             should.not.exist(err);
             done();
@@ -356,7 +388,7 @@ describe('client.test.js', function() {
   var MIN_SAFE_INT = -MAX_SAFE_INT;
   describe('putRow()', function () {
     it('should insert a row success', function (done) {
-      client.putRow('testuser', 
+      client.putRow('node_ots_client_testuser', 
         [ 
           { Name: 'uid', Value: 'mk2' }, 
           { Name: 'firstname', Value: 'yuan' },
@@ -390,7 +422,7 @@ describe('client.test.js', function() {
     });
 
     it('should UPDATE a row error when pk not exists', function (done) {
-      client.putRow('testuser', 
+      client.putRow('node_ots_client_testuser', 
         [ 
           { Name: 'uid', Value: 'mk2222' }, 
           { Name: 'firstname', Value: 'yuannot-exsits' },
@@ -417,7 +449,7 @@ describe('client.test.js', function() {
     });
 
     it('should INSERT a row error when pk exists', function (done) {
-      client.putRow('testuser', 
+      client.putRow('node_ots_client_testuser', 
         [ 
           { Name: 'uid', Value: 'mk2' }, 
           { Name: 'firstname', Value: 'yuan' },
@@ -446,7 +478,7 @@ describe('client.test.js', function() {
 
   describe('getRow()', function () {
     before(function (done) {
-      client.putData('testuser', 
+      client.putData('node_ots_client_testuser', 
         [ 
           { Name: 'uid', Value: 'mk2' }, 
           { Name: 'firstname', Value: 'yuan' },
@@ -473,7 +505,7 @@ describe('client.test.js', function() {
     it('should return error pk not match', function (done) {
       done = pedding(2, done);
 
-      client.getRow('testuser', 
+      client.getRow('node_ots_client_testuser', 
       [ 
         { Name: 'uid1', Value: 'mk2' }, 
         { Name: 'firstname', Value: 'yuan' },
@@ -488,7 +520,7 @@ describe('client.test.js', function() {
       });
 
       // 顺序错误...
-      client.getRow('testuser', 
+      client.getRow('node_ots_client_testuser', 
       [ 
         { Name: 'firstname', Value: 'yuan' },
         { Name: 'uid', Value: 'mk2' }, 
@@ -504,7 +536,7 @@ describe('client.test.js', function() {
     });
 
     it('should return a row all columns', function (done) {
-      client.getRow('testuser', 
+      client.getRow('node_ots_client_testuser', 
       [ 
         { Name: 'uid', Value: 'mk2' }, 
         { Name: 'firstname', Value: 'yuan' },
@@ -552,7 +584,7 @@ describe('client.test.js', function() {
     });
 
     it('should return a row some columns', function (done) {
-      client.getRow('testuser', 
+      client.getRow('node_ots_client_testuser', 
       [ 
         { Name: 'uid', Value: 'mk2' }, 
         { Name: 'firstname', Value: 'yuan' },
@@ -573,7 +605,7 @@ describe('client.test.js', function() {
     it('should return a row some columns and not exists columns', function (done) {
       done = pedding(6, done);
 
-      client.getRow('testuser', 
+      client.getRow('node_ots_client_testuser', 
       [ 
         { Name: 'uid', Value: 'mk2' }, 
         { Name: 'firstname', Value: 'yuan' },
@@ -590,7 +622,7 @@ describe('client.test.js', function() {
         done();
       });
 
-      client.getRow('testuser', 
+      client.getRow('node_ots_client_testuser', 
       [ 
         { Name: 'uid', Value: 'mk2' }, 
         { Name: 'firstname', Value: 'yuan' },
@@ -605,7 +637,7 @@ describe('client.test.js', function() {
         done();
       });
 
-      client.getRow('testuser', 
+      client.getRow('node_ots_client_testuser', 
       [ 
         { Name: 'uid', Value: 'mk2' }, 
         { Name: 'firstname', Value: 'yuan' },
@@ -617,7 +649,7 @@ describe('client.test.js', function() {
         done();
       });
 
-      client.getRow('testuser', 
+      client.getRow('node_ots_client_testuser', 
       [ 
         { Name: 'uid', Value: 'mk2' }, 
         { Name: 'firstname', Value: 'yuan' },
@@ -629,7 +661,7 @@ describe('client.test.js', function() {
         done();
       });
 
-      client.getRow('testuser', 
+      client.getRow('node_ots_client_testuser', 
       [ 
         { Name: 'uid', Value: 'mk2' }, 
         { Name: 'firstname', Value: 'yuan' },
@@ -641,7 +673,7 @@ describe('client.test.js', function() {
         done();
       });
 
-      client.getRow('testuser', 
+      client.getRow('node_ots_client_testuser', 
       [ 
         { Name: 'uid', Value: 'mk2' }, 
         { Name: 'firstname', Value: 'yuan' },
@@ -655,7 +687,7 @@ describe('client.test.js', function() {
     });
 
     it('should return null when pk not exists', function (done) {
-      client.getRow('testuser', 
+      client.getRow('node_ots_client_testuser', 
       [ 
         { Name: 'uid', Value: 'not-existskey' }, 
         { Name: 'firstname', Value: 'haha' },
@@ -674,7 +706,7 @@ describe('client.test.js', function() {
         // { Name: 'uid_md5', Type: 'STRING' },
         // { Name: 'uid', Type: 'STRING' },
         // { Name: 'create_time', Type: 'STRING' }
-        client.getRow('testuser_range', [
+        client.getRow('node_ots_client_testuser_range', [
           { Name: 'uid_md5', Value: 'md51' }, 
           { Name: 'uid', Value: '320' },
           { Name: 'create_time', Value: '2013090' },
@@ -684,7 +716,7 @@ describe('client.test.js', function() {
         });
       });
       for (var i = 0; i < 10; i++) {
-        client.putRow('testuser_range', 
+        client.putRow('node_ots_client_testuser_range', 
         [ 
           { Name: 'uid_md5', Value: 'md51' }, 
           { Name: 'uid', Value: '320' }, 
@@ -708,7 +740,7 @@ describe('client.test.js', function() {
 
     var nextBegin = null;
     it('should get top 6 rows, limit 6', function (done) {
-      client.getRowsByRange('testuser_range', 
+      client.getRowsByRange('node_ots_client_testuser_range', 
         [ 
           { Name: 'uid_md5', Value: 'md51' }, 
           { Name: 'uid', Value: '320' }, 
@@ -730,7 +762,7 @@ describe('client.test.js', function() {
     });
 
     it('should get 2 rows[6-8) limit 10', function (done) {
-      client.getRowsByRange('testuser_range', 
+      client.getRowsByRange('node_ots_client_testuser_range', 
         [
           { Name: 'uid_md5', Value: 'md51' }, 
           { Name: 'uid', Value: '320' }, 
@@ -749,7 +781,7 @@ describe('client.test.js', function() {
     });
 
     it('should get 0 rows', function (done) {
-      client.getRowsByRange('testuser_range', 
+      client.getRowsByRange('node_ots_client_testuser_range', 
         [
           { Name: 'uid_md5', Value: 'md51' }, 
           { Name: 'uid', Value: '320' }, 
@@ -765,7 +797,7 @@ describe('client.test.js', function() {
 
   describe('deleteRow()', function () {
     it('should delete a row', function (done) {
-      client.deleteData('testuser', 
+      client.deleteData('node_ots_client_testuser', 
         [
           {Name: 'uid', Value: 'mk2'},
           {Name: 'firstname', Value: 'yuan'}
@@ -773,7 +805,7 @@ describe('client.test.js', function() {
       function (err) {
         should.not.exist(err);
         // TODO: WTF, delete delay?!
-        client.getRow('testuser', [
+        client.getRow('node_ots_client_testuser', [
             {Name: 'uid', Value: 'mk2'},
             {Name: 'firstname', Value: 'yuan'}
           ],
@@ -785,7 +817,7 @@ describe('client.test.js', function() {
     });
 
     it('should delete by a not exists key', function (done) {
-      client.deleteRow('testuser', [
+      client.deleteRow('node_ots_client_testuser', [
         {Name: 'uid', Value: 'not-existskey'},
         {Name: 'firstname', Value: 'yuan'}
       ], function (err) {
@@ -795,7 +827,7 @@ describe('client.test.js', function() {
     });
 
     it('should delete row with wrong pk', function (done) {
-      client.deleteRow('testuser', [
+      client.deleteRow('node_ots_client_testuser', [
         {Name: 'uid2', Value: 'not-existskey'},
         {Name: 'firstname', Value: 'yuan'}
       ], function (err) {
@@ -819,11 +851,11 @@ describe('client.test.js', function() {
     });
 
     it('should delete "' + url + '" and insert new', function (done) {
-      client.startTransaction('testurl', urlmd5, function (err, tid) {
+      client.startTransaction('node_ots_client_testurl', urlmd5, function (err, tid) {
         should.not.exist(err);
         tid.should.be.a.String;
         transactionID = tid;
-        client.batchModifyData('testurl', 
+        client.batchModifyData('node_ots_client_testurl', 
         [
           {
             Type: 'DELETE',
@@ -871,7 +903,7 @@ describe('client.test.js', function() {
           ]
         });
       }
-      client.multiPutRow('testuser', items, function (err, results) {
+      client.multiPutRow('node_ots_client_testuser', items, function (err, results) {
         should.not.exist(err);
         results.should.length(100);
         results[0].should.eql({code: 'OK'});
@@ -900,7 +932,7 @@ describe('client.test.js', function() {
           ]
         });
       }
-      client.multiPutRow('testuser', items, function (err, results) {
+      client.multiPutRow('node_ots_client_testuser', items, function (err, results) {
         should.exist(err);
         err.name.should.equal('OTSParameterInvalidError');
         err.message.should.equal('Rows count exceeds the upper limit');
@@ -921,7 +953,7 @@ describe('client.test.js', function() {
           ]
         });
       }
-      client.multiDeleteRow('testuser', items, function (err, results) {
+      client.multiDeleteRow('node_ots_client_testuser', items, function (err, results) {
         should.not.exist(err);
         results.should.length(50);
         results[0].should.eql({code: 'OK'});
@@ -940,7 +972,7 @@ describe('client.test.js', function() {
           columnNames: ['man', 'age']
         });
       }
-      client.multiDeleteRow('testuser', items, function (err, results) {
+      client.multiDeleteRow('node_ots_client_testuser', items, function (err, results) {
         should.not.exist(err);
         results.should.length(100);
         results[0].should.eql({code: 'OK'});
@@ -959,7 +991,7 @@ describe('client.test.js', function() {
           columnNames: ['man', 'age-not-exists']
         });
       }
-      client.multiDeleteRow('testuser', items, function (err, results) {
+      client.multiDeleteRow('node_ots_client_testuser', items, function (err, results) {
         should.exist(err);
         err.name.should.equal('OTSParameterInvalidError');
         err.message.should.equal('Column name age-not-exists is invalid.');
@@ -978,7 +1010,7 @@ describe('client.test.js', function() {
           columnNames: ['man']
         });
       }
-      client.multiDeleteRow('testuser', items, function (err, results) {
+      client.multiDeleteRow('node_ots_client_testuser', items, function (err, results) {
         should.exist(err);
         err.name.should.equal('OTSParameterInvalidError');
         err.message.should.equal('Rows count exceeds the upper limit');
@@ -995,7 +1027,7 @@ describe('client.test.js', function() {
         done();
       });
       for (var i = 0; i < 5; i++) {
-        client.putData('testuser', 
+        client.putData('node_ots_client_testuser', 
         [ 
           { Name: 'uid', Value: 'testuser_mget2_' + i }, 
           { Name: 'firstname', Value: 'name' + i } 
@@ -1025,14 +1057,14 @@ describe('client.test.js', function() {
           { Name: 'firstname', Value: 'name' + i } 
         ]);
       }
-      client.multiGetRow('testuser', pks, function (err, items) {
+      client.multiGetRow('node_ots_client_testuser', pks, function (err, items) {
         should.not.exist(err);
         items.should.length(10);
         for (var i = 0; i < 5; i++) {
           var item = items[i];
           item.isSucceed.should.equal(true);
           item.error.should.eql({ code: 'OK' });
-          item.tableName.should.equal('testuser');
+          item.tableName.should.equal('node_ots_client_testuser');
           item.row.should.have.keys('uid', 'age', 'createtime', 'enable', 'female', 'index', 'lastname',
             'man', 'nickname', 'price', 'firstname');
           item.row.index.should.equal(i);
@@ -1041,7 +1073,7 @@ describe('client.test.js', function() {
           var item = items[i];
           item.isSucceed.should.equal(true);
           item.error.should.eql({ code: 'OK' });
-          item.tableName.should.equal('testuser');
+          item.tableName.should.equal('node_ots_client_testuser');
           should.not.exist(item.row);
         }
         done();
@@ -1056,7 +1088,7 @@ describe('client.test.js', function() {
           { Name: 'firstname', Value: 'name' + i } 
         ]);
       }
-      client.multiGetRow('testuser', pks, function (err, items) {
+      client.multiGetRow('node_ots_client_testuser', pks, function (err, items) {
         should.exist(err);
         err.name.should.equal('OTSParameterInvalidError');
         err.message.should.equal('Rows count exceeds the upper limit');
@@ -1072,7 +1104,7 @@ describe('client.test.js', function() {
           { Name: 'firstname', Value: 'name' + i } 
         ]);
       }
-      client.multiGetRow('testuser', pks, function (err, items) {
+      client.multiGetRow('node_ots_client_testuser', pks, function (err, items) {
         should.exist(err);
         err.name.should.equal('OTSMetaNotMatchError');
         err.message.should.equal('Primary key schema from request is not match with table meta: uid2:STRING,firstname:STRING');
@@ -1094,7 +1126,7 @@ describe('client.test.js', function() {
     });
 
     it('request error', function (done) {
-      _client.getRow('testuser', 
+      _client.getRow('node_ots_client_testuser', 
       [ 
         { Name: 'uid', Value: 'mk2' }, 
         { Name: 'firstname', Value: 'yuan' },
@@ -1112,7 +1144,7 @@ describe('client.test.js', function() {
         lookup: {},
         resolve4: {}
       };
-      _client.getRow('testuser', 
+      _client.getRow('node_ots_client_testuser', 
       [ 
         { Name: 'uid', Value: 'mk2' }, 
         { Name: 'firstname', Value: 'yuan' },
