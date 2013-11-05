@@ -160,6 +160,21 @@ describe('client.test.js', function() {
         done();
       });
     });
+
+    it('should mock error', function (done) {
+      var requests = {
+        Schema: [ ['uid', 'S'], ['sid', 'S'] ],
+        Data: [
+        ]
+      };
+      mm.error(urllib, 'request');
+      client.importData('node_ots_client_testuser_relation', requests, function (err, result) {
+        should.exist(err);
+        err.name.should.equal('OTSMockError');
+        should.not.exist(result);
+        done();
+      });
+    });
   });
 
   describe('createTableGroup()', function () {
