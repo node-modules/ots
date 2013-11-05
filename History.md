@@ -1,4 +1,10 @@
 
+0.4.8 / 2013-11-05 
+==================
+
+  * only left debug url when error happend
+  * add more cases
+
 0.4.7 / 2013-11-05 
 ==================
 
