@@ -201,7 +201,7 @@ describe('client.test.js', function() {
     });
 
     it('should create "node_ots_client_testuser_bigint" table success', function (done) {
-      done = pedding(4, done);
+      done = pedding(5, done);
 
       var rowkey = [
         {Name: 'uid', Type: 'INTEGER', Value: '2523370015105311489'},
@@ -258,6 +258,21 @@ describe('client.test.js', function() {
           data.should.eql({ name: 'suqian', uid: 100 });
           data.uid.should.be.a.Number;
           data.uid.should.equal(100);
+          done();
+        });
+      });
+
+      var rowkey5 = [
+        {Name: 'uid', Value: 0},
+      ];
+      client.putRow('node_ots_client_testuser_bigint', rowkey5, [{Name: 'name', Value: 'suqian'}], 
+      function (err, result) {
+        should.not.exist(err);
+        client.getRow('node_ots_client_testuser_bigint', rowkey5, function (err, data) {
+          should.not.exist(err);
+          data.should.eql({ name: 'suqian', uid: 0 });
+          data.uid.should.be.a.Number;
+          data.uid.should.equal(0);
           done();
         });
       });
@@ -395,16 +410,16 @@ describe('client.test.js', function() {
         ],
         [
           { Name: 'lastname', Value: 'feng\' mk2' },
-          { Name: 'nickname', Value: '  苏千\n ' },
+          { Name: 'nickname', Value: '  苏千\n ', Type: 'STRING' },
           { Name: 'age', Value: 28 }, // int64
           { Name: 'json', Value: '{ "foo": "bar" }' },
-          { Name: 'price', Value: 110.5 },
+          { Name: 'price', Value: 110, Type: 'DOUBLE' },
           { Name: 'enable', Value: true },
           { Name: 'man', Value: true },
           { Name: 'status', Value: null },
-          { Name: 'female', Value: false },
+          { Name: 'female', Value: false, Type: 'BOOLEAN' },
           { Name: 'createtime', Value: now.toJSON() },
-          { Name: 'zero', Value: 0 },
+          { Name: 'zero', Value: 0, Type: 'INTEGER' },
           { Name: 'maxSafeInt', Value: MAX_SAFE_INT },
           { Name: 'minSafeInt', Value: MIN_SAFE_INT },
           { Name: 'unSafeInt1', Value: '1' + MAX_SAFE_INT },
