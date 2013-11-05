@@ -1,5 +1,6 @@
 /*!
  * ots - test/client.test.js
+ * 
  * Copyright(c) 2012 - 2013 fengmk2 <fengmk2@gmail.com> (http://fengmk2.github.com/)
  * MIT Licensed
  */
@@ -28,7 +29,9 @@ describe('client.test.js', function() {
   afterEach(mm.restore);
 
   before(function (done) {
-    var ep = EventProxy.create('testgroup', 'test', 'testuser', 'testuser_bigint', 'testurl', 'testuser_range', 
+    var ep = EventProxy.create('testgroup', 'test', 'testuser', 'testuser_bigint', 'testurl', 
+      'testuser_range', 
+      'testuser_relation',
     function () {
       done();
     });
@@ -58,6 +61,16 @@ describe('client.test.js', function() {
     });
 
     client.createTable({
+      TableName: 'node_ots_client_testuser_relation',
+      PrimaryKey: [
+        { 'Name': 'uid', 'Type': 'STRING' },
+        { 'Name': 'sid', 'Type': 'STRING' },
+      ],
+    }, function (err, result) {
+      ep.emit('testuser_relation')
+    });
+
+    client.createTable({
       TableName: 'node_ots_client_testuser_range',
       PrimaryKey: [
         { Name: 'uid_md5', Type: 'STRING' },
@@ -75,6 +88,77 @@ describe('client.test.js', function() {
       ],
     }, function (err, result) {
       ep.emit('testurl')
+    });
+  });
+
+  describe('importData()', function () {
+    it('should import data to a table', function (done) {
+      var requests = {
+        Schema: [ ['uid', 'S'], ['sid', 'S'] ],
+        Data: [
+          { PK: ['1', '1'], Column: [ ['c1', 'I', 1], ['gmt', 'S', Date()] ] },
+          { PK: ['1', '1'], Column: [ ['c1', 'I', 1], ['gmt', 'S', Date()] ] },
+          { PK: ['1', '1'], Column: [ ['c1', 'I', 1], ['gmt', 'S', Date()] ] },
+          { PK: ['1', '1'], Column: [ ['c1', 'I', 1], ['gmt', 'S', Date()] ] },
+          { PK: ['1', '1'], Column: [ ['c1', 'I', 1], ['gmt', 'S', Date()] ] },
+          { PK: ['2', '1'], Column: [ ['c1', 'I', 2], ['gmt', 'S', Date()] ] },
+          { PK: ['3', '1'], Column: [ ['c1', 'I', 3], ['gmt', 'S', Date()] ] },
+          { PK: ['4', '2'], Column: [ ['c1', 'I', 4], ['gmt', 'S', Date()] ] },
+          { PK: ['2', '2'], Column: [ ['c1', 'I', 5], ['gmt', 'S', Date()] ] },
+          { PK: ['2', '3'], Column: [ ['c1', 'I', 6], ['gmt', 'S', Date()] ] },
+          { PK: ['2', '4'], Column: [ ['c1', 'I', 7], ['gmt', 'S', Date()] ] },
+        ]
+      };
+      client.importData('node_ots_client_testuser_relation', requests, function (err, result) {
+        should.not.exist(err);
+        var pks = [
+          [ {Name: 'uid', Value: '1'}, {Name: 'sid', Value: '1'} ],
+          [ {Name: 'uid', Value: '2'}, {Name: 'sid', Value: '1'} ],
+          [ {Name: 'uid', Value: '3'}, {Name: 'sid', Value: '1'} ],
+          [ {Name: 'uid', Value: '4'}, {Name: 'sid', Value: '2'} ],
+          [ {Name: 'uid', Value: '2'}, {Name: 'sid', Value: '2'} ],
+          [ {Name: 'uid', Value: '2'}, {Name: 'sid', Value: '3'} ],
+          [ {Name: 'uid', Value: '2'}, {Name: 'sid', Value: '4'} ],
+        ];
+        client.multiGetRow('node_ots_client_testuser_relation', pks, function (err, datas) {
+          should.not.exist(err);
+          datas.should.length(pks.length);
+          datas.forEach(function (data, i) {
+            data.should.have.keys('isSucceed', 'error', 'tableName', 'row');
+            data.row.should.have.keys('c1', 'gmt', 'uid', 'sid');
+            data.row.c1.should.be.a.Number;
+            data.row.c1.should.equal(i + 1);
+          });
+          done();
+        });
+      });
+    });
+
+    it('should import empty rows to a table', function (done) {
+      var requests = {
+        Schema: [ ['uid', 'S'], ['sid', 'S'] ],
+        Data: [
+        ]
+      };
+      client.importData('node_ots_client_testuser_relation', requests, function (err, result) {
+        should.not.exist(err);
+        result.Code.should.equal('OK');
+        done();
+      });
+    });
+
+    it('should import wrong', function (done) {
+      var requests = {
+        Schema: [ ['uid', 'S'], ['sid', 'I'] ],
+        Data: [
+        ]
+      };
+      client.importData('node_ots_client_testuser_relation', requests, function (err, result) {
+        should.exist(err);
+        err.name.should.equal('OTSMetaNotMatch');
+        err.message.should.equal('Primary key meta defined in the request does not match with the Table meta.');
+        done();
+      });
     });
   });
 

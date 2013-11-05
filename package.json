@@ -23,6 +23,7 @@
     }
   },
   "dependencies": {
+    "xml2json": "0.3.2",
     "debug": ">=0.7.2",
     "urllib": ">=0.5.2",
     "cache-dns": ">=0.0.2",

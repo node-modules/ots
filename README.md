@@ -29,6 +29,7 @@ Using `protobuf` protocol API on `ots@0.4.0+`.
     * BatchModifyRow (working)
     * GetRow
     * MultiGetRow (Max 10 rows)
+    * 
     * GetRowsByRange
     * ~~GetRowsByOffset~~ (removed)
 
