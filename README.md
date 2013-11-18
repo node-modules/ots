@@ -1,5 +1,7 @@
 # OTS SDK [![Build Status](https://secure.travis-ci.org/fengmk2/ots.png)](http://travis-ci.org/fengmk2/ots) [![Coverage Status](https://coveralls.io/repos/fengmk2/ots/badge.png)](https://coveralls.io/r/fengmk2/ots)
 
+[![NPM](https://nodei.co/npm/ots.png?downloads=true&stars=true)](https://nodei.co/npm/ots)
+
 Aliyun [OTS](http://ots.aliyun.com/)(Open Table Service) SDK for [Node.js](http://nodejs.org).
 
 Using `protobuf` protocol API on `ots@0.4.0+`.
@@ -29,7 +31,7 @@ Using `protobuf` protocol API on `ots@0.4.0+`.
     * BatchModifyRow (working)
     * GetRow
     * MultiGetRow (Max 10 rows)
-    * 
+    *
     * GetRowsByRange
     * ~~GetRowsByOffset~~ (removed)
 
@@ -59,8 +61,8 @@ client.createTable({
   ],
   PagingKeyLen: 0,
   View: [
-    { 
-      'Name': 'view1', 
+    {
+      'Name': 'view1',
       'PrimaryKey' : [
         {'Name':'uid', 'Type':'STRING'},
         {'Name':'flag', 'Type':'STRING'},
@@ -78,8 +80,8 @@ client.createTable({
 });
 
 // insert a row
-client.putRow('user', 
-  { Name: 'uid', Value: 'mk2' }, 
+client.putRow('user',
+  { Name: 'uid', Value: 'mk2' },
   [
     { Name: 'firstname', Value: 'yuan' },
     { Name: 'lastname', Value: 'feng\' aerdeng' },
@@ -115,20 +117,20 @@ More examples, please see [test/client.test.js](https://github.com/fengmk2/ots/b
 ## Authors
 
 ```bash
-$ git summary 
+$ git summary
 
  project  : ots
  repo age : 1 year, 7 months
  active   : 22 days
  commits  : 63
  files    : 23
- authors  : 
+ authors  :
     58  fengmk2                 92.1%
      3  tangyao                 4.8%
      2  coolme200               3.2%
 ```
 
-## License 
+## License
 
 (The MIT License)
 
