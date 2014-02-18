@@ -1,4 +1,11 @@
 
+0.5.2 / 2014-02-18 
+==================
+
+  * fix test cases
+  * fix OTS endpoint to be the latest one: http://ots.aliyuncs.com (@edwardliwang)
+  * add npm image
+
 0.5.1 / 2013-11-05 
 ==================
 
