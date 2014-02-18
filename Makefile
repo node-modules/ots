@@ -4,7 +4,7 @@ TIMEOUT = 10000
 MOCHA_OPTS =
 
 install:
-	@npm install
+	@npm install --registry=http://r.cnpmjs.org
 
 test: install
 	@NODE_ENV=test ./node_modules/mocha/bin/mocha \
@@ -25,5 +25,11 @@ test-coveralls:
 	@$(MAKE) test MOCHA_OPTS='--require blanket' REPORTER=mocha-lcov-reporter | ./node_modules/coveralls/bin/coveralls.js
 
 test-all: test test-cov
+
+contributors: install
+	@./node_modules/.bin/contributors -f plain -o AUTHORS
+
+autod: install
+	@./node_modules/.bin/autod -w -e benchmark
 
 .PHONY: test

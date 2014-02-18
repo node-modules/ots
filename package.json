@@ -11,8 +11,10 @@
     "url": "git://github.com/fengmk2/ots.git"
   },
   "scripts": {
-    "test": "make test-all",
-    "blanket": { 
+    "test": "make test-all"
+  },
+  "config": {
+    "blanket": {
       "pattern": "ots/lib",
       "data-cover-flags": {
         "debug": false
@@ -23,29 +25,31 @@
     }
   },
   "dependencies": {
-    "xml2json": "0.3.2",
-    "debug": ">=0.7.2",
-    "urllib": ">=0.5.2",
-    "cache-dns": ">=0.0.2",
-    "utility": ">=0.1.1",
-    "protobuf-ali": ">=0.8.7"
+    "cache-dns": "0.0.2",
+    "debug": "0.7.4",
+    "protobuf-ali": "0.8.7",
+    "urllib": "0.5.5",
+    "utility": "0.1.10",
+    "xml2json": "0.4.0"
   },
   "devDependencies": {
-    "benchmark": "*",
     "ab": "*",
-    "pedding": "*",
-    "should": "*",
-    "mocha": "*",
-    "mm": "*",
+    "agentkeepalive": ">=0.1.1",
+    "autod": "*",
+    "benchmark": "*",
     "blanket": "*",
-    "travis-cov": "*",
+    "contributors": "*",
     "coveralls": "*",
+    "eventproxy": "0.2.6",
+    "mm": "0.1.8",
+    "mocha": "*",
     "mocha-lcov-reporter": "*",
-    "eventproxy": "*",
-    "agentkeepalive": ">=0.1.1"
+    "pedding": "0.0.3",
+    "should": "3.1.2",
+    "travis-cov": "*"
   },
   "license": "MIT",
-  "engines": { 
-    "node": ">= 0.8.0" 
+  "engines": {
+    "node": ">= 0.8.0"
   }
 }

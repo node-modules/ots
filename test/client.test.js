@@ -1,7 +1,7 @@
-/*!
+/**!
  * ots - test/client.test.js
- * 
- * Copyright(c) 2012 - 2013 fengmk2 <fengmk2@gmail.com> (http://fengmk2.github.com/)
+ *
+ * Copyright(c) 2012 - 2014 fengmk2 <fengmk2@gmail.com> (http://fengmk2.github.com/)
  * MIT Licensed
  */
 
@@ -29,8 +29,8 @@ describe('client.test.js', function() {
   afterEach(mm.restore);
 
   before(function (done) {
-    var ep = EventProxy.create('testgroup', 'test', 'testuser', 'testuser_bigint', 'testurl', 
-      'testuser_range', 
+    var ep = EventProxy.create('testgroup', 'test', 'testuser', 'testuser_bigint', 'testurl',
+      'testuser_range',
       'testuser_relation',
     function () {
       done();
@@ -184,7 +184,7 @@ describe('client.test.js', function() {
         client.createTableGroup('node_ots_client_testgroup', 'STRING', function (err) {
           should.exist(err);
           err.name.should.equal('OTSStorageObjectAlreadyExistError');
-          err.message.should.equal('Requested table/view does exist.');
+          err.message.should.equal('Requested table group/table/view does exist.');
           err.code.should.equal('OTSStorageObjectAlreadyExist');
           done();
         });
@@ -252,7 +252,7 @@ describe('client.test.js', function() {
         client.deleteTableGroup('node_ots_client_testgroup', function (err) {
           should.exist(err);
           err.name.should.equal('OTSStorageObjectNotExistError');
-          err.message.should.equal('Requested table/view doesn\'t exist.');
+          err.message.should.equal('Requested table group/table/view doesn\'t exist.');
           console.log(err)
           err.url.should.include('&requestid=');
           err.url.should.include('&hostid=');
@@ -280,8 +280,8 @@ describe('client.test.js', function() {
           {'Name': 'uid', 'Type': 'STRING'},
         ],
         View: [
-          { 
-            'Name': 'view1', 
+          {
+            'Name': 'view1',
             'PrimaryKey' : [
               {'Name':'uid', 'Type':'STRING'},
               {'Name':'flag', 'Type':'STRING'},
@@ -305,7 +305,7 @@ describe('client.test.js', function() {
       var rowkey = [
         {Name: 'uid', Type: 'INTEGER', Value: '2523370015105311489'},
       ];
-      client.putRow('node_ots_client_testuser_bigint', rowkey, [{Name: 'name', Value: 'suqian'}], 
+      client.putRow('node_ots_client_testuser_bigint', rowkey, [{Name: 'name', Value: 'suqian'}],
       function (err, result) {
         should.not.exist(err);
         client.getRow('node_ots_client_testuser_bigint', rowkey, function (err, data) {
@@ -321,7 +321,7 @@ describe('client.test.js', function() {
         {Name: 'uid', Value: 2523370015105311489},
       ];
       // should got wrong value when number to long
-      client.putRow('node_ots_client_testuser_bigint', rowkey4, [{Name: 'name', Value: 'suqian'}], 
+      client.putRow('node_ots_client_testuser_bigint', rowkey4, [{Name: 'name', Value: 'suqian'}],
       function (err, result) {
         should.not.exist(err);
         client.getRow('node_ots_client_testuser_bigint', rowkey4, function (err, data) {
@@ -334,7 +334,7 @@ describe('client.test.js', function() {
       var rowkey2 = [
         {Name: 'uid', Type: 'INTEGER', Value: Math.pow(2, 53)},
       ];
-      client.putRow('node_ots_client_testuser_bigint', rowkey2, [{Name: 'name', Value: 'suqian'}], 
+      client.putRow('node_ots_client_testuser_bigint', rowkey2, [{Name: 'name', Value: 'suqian'}],
       function (err, result) {
         should.not.exist(err);
         client.getRow('node_ots_client_testuser_bigint', rowkey2, function (err, data) {
@@ -349,7 +349,7 @@ describe('client.test.js', function() {
       var rowkey3 = [
         {Name: 'uid', Type: 'INTEGER', Value: 100},
       ];
-      client.putRow('node_ots_client_testuser_bigint', rowkey3, [{Name: 'name', Value: 'suqian'}], 
+      client.putRow('node_ots_client_testuser_bigint', rowkey3, [{Name: 'name', Value: 'suqian'}],
       function (err, result) {
         should.not.exist(err);
         client.getRow('node_ots_client_testuser_bigint', rowkey3, function (err, data) {
@@ -364,7 +364,7 @@ describe('client.test.js', function() {
       var rowkey5 = [
         {Name: 'uid', Value: 0},
       ];
-      client.putRow('node_ots_client_testuser_bigint', rowkey5, [{Name: 'name', Value: 'suqian'}], 
+      client.putRow('node_ots_client_testuser_bigint', rowkey5, [{Name: 'name', Value: 'suqian'}],
       function (err, result) {
         should.not.exist(err);
         client.getRow('node_ots_client_testuser_bigint', rowkey5, function (err, data) {
@@ -401,13 +401,13 @@ describe('client.test.js', function() {
     });
 
     it('should create "node_ots_client_test" table exist error', function (done) {
-      client.createTable({ 
-        TableName: 'node_ots_client_test', 
-        PrimaryKey: [ { Name: 'id', Type: 'STRING' } ] 
+      client.createTable({
+        TableName: 'node_ots_client_test',
+        PrimaryKey: [ { Name: 'id', Type: 'STRING' } ]
       }, function (err, result) {
         should.exist(err);
         err.name.should.equal('OTSStorageObjectAlreadyExistError');
-        err.message.should.equal('Requested table/view does exist.');
+        err.message.should.equal('Requested table group/table/view does exist.');
         done();
       });
     });
@@ -418,7 +418,7 @@ describe('client.test.js', function() {
         client.deleteTable('node_ots_client_test', function (err) {
           should.exist(err);
           err.name.should.equal('OTSStorageObjectNotExistError');
-          err.message.should.equal('Requested table/view doesn\'t exist.');
+          err.message.should.equal('Requested table group/table/view doesn\'t exist.');
           done();
         });
       });
@@ -502,9 +502,9 @@ describe('client.test.js', function() {
   var MIN_SAFE_INT = -MAX_SAFE_INT;
   describe('putRow()', function () {
     it('should insert a row success', function (done) {
-      client.putRow('node_ots_client_testuser', 
-        [ 
-          { Name: 'uid', Value: 'mk2' }, 
+      client.putRow('node_ots_client_testuser',
+        [
+          { Name: 'uid', Value: 'mk2' },
           { Name: 'firstname', Value: 'yuan' },
         ],
         [
@@ -528,7 +528,7 @@ describe('client.test.js', function() {
           { Name: 'unSafeInt5', Value: MIN_SAFE_INT - 2 },
           { Name: 'unSafeInt6', Value: MIN_SAFE_INT - 3 },
           { Name: 'unSafeInt7', Value: MIN_SAFE_INT + '123' },
-        ], 
+        ],
       function (err) {
         should.not.exist(err);
         done();
@@ -536,9 +536,9 @@ describe('client.test.js', function() {
     });
 
     it('should UPDATE a row error when pk not exists', function (done) {
-      client.putRow('node_ots_client_testuser', 
-        [ 
-          { Name: 'uid', Value: 'mk2222' }, 
+      client.putRow('node_ots_client_testuser',
+        [
+          { Name: 'uid', Value: 'mk2222' },
           { Name: 'firstname', Value: 'yuannot-exsits' },
         ],
         [
@@ -552,20 +552,20 @@ describe('client.test.js', function() {
           { Name: 'status', Value: null },
           { Name: 'female', Value: false },
           { Name: 'createtime', Value: now.toJSON() },
-        ], 
+        ],
         'UPDATE',
       function (err) {
         should.exist(err);
         err.name.should.equal('OTSStoragePrimaryKeyNotExistError');
-        err.message.should.equal("Row to update doesn't exist.");
+        err.message.should.equal("Row to be updated doesn't exist.");
         done();
       });
     });
 
     it('should INSERT a row error when pk exists', function (done) {
-      client.putRow('node_ots_client_testuser', 
-        [ 
-          { Name: 'uid', Value: 'mk2' }, 
+      client.putRow('node_ots_client_testuser',
+        [
+          { Name: 'uid', Value: 'mk2' },
           { Name: 'firstname', Value: 'yuan' },
         ],
         [
@@ -579,12 +579,12 @@ describe('client.test.js', function() {
           { Name: 'status', Value: null },
           { Name: 'female', Value: false },
           { Name: 'createtime', Value: now.toJSON() },
-        ], 
+        ],
         'INSERT',
       function (err) {
         should.exist(err);
         err.name.should.equal('OTSStoragePrimaryKeyAlreadyExistError');
-        err.message.should.equal("Row to insert does exist.");
+        err.message.should.equal("Row to be inserted does exist.");
         done();
       });
     });
@@ -592,9 +592,9 @@ describe('client.test.js', function() {
 
   describe('getRow()', function () {
     before(function (done) {
-      client.putData('node_ots_client_testuser', 
-        [ 
-          { Name: 'uid', Value: 'mk2' }, 
+      client.putData('node_ots_client_testuser',
+        [
+          { Name: 'uid', Value: 'mk2' },
           { Name: 'firstname', Value: 'yuan' },
         ],
         [
@@ -609,21 +609,21 @@ describe('client.test.js', function() {
           { Name: 'female', Value: false },
           { Name: 'createtime', Value: now.toJSON() },
           { Name: 'haha', Value: '哈哈' },
-        ], 
+        ],
       function (err) {
         should.not.exist(err);
         done();
       });
     });
-    
+
     it('should return error pk not match', function (done) {
       done = pedding(2, done);
 
-      client.getRow('node_ots_client_testuser', 
-      [ 
-        { Name: 'uid1', Value: 'mk2' }, 
+      client.getRow('node_ots_client_testuser',
+      [
+        { Name: 'uid1', Value: 'mk2' },
         { Name: 'firstname', Value: 'yuan' },
-      ], 
+      ],
       function (err, row) {
         should.exist(err);
         err.name.should.include('OTSMetaNotMatchError');
@@ -634,11 +634,11 @@ describe('client.test.js', function() {
       });
 
       // 顺序错误...
-      client.getRow('node_ots_client_testuser', 
-      [ 
+      client.getRow('node_ots_client_testuser',
+      [
         { Name: 'firstname', Value: 'yuan' },
-        { Name: 'uid', Value: 'mk2' }, 
-      ], 
+        { Name: 'uid', Value: 'mk2' },
+      ],
       function (err, row) {
         should.exist(err);
         err.name.should.include('OTSMetaNotMatchError');
@@ -650,18 +650,18 @@ describe('client.test.js', function() {
     });
 
     it('should return a row all columns', function (done) {
-      client.getRow('node_ots_client_testuser', 
-      [ 
-        { Name: 'uid', Value: 'mk2' }, 
+      client.getRow('node_ots_client_testuser',
+      [
+        { Name: 'uid', Value: 'mk2' },
         { Name: 'firstname', Value: 'yuan' },
-      ], 
+      ],
       function (err, row) {
         should.not.exist(err);
-        row.should.have.keys([ 
+        row.should.have.keys([
           'uid', 'firstname', // should include pk
           'lastname', 'nickname',
           'age', 'price', 'enable',
-          'man', 'female', 
+          'man', 'female',
           'json', 'status',
           'createtime',
           'haha',
@@ -698,15 +698,15 @@ describe('client.test.js', function() {
     });
 
     it('should return a row some columns', function (done) {
-      client.getRow('node_ots_client_testuser', 
-      [ 
-        { Name: 'uid', Value: 'mk2' }, 
+      client.getRow('node_ots_client_testuser',
+      [
+        { Name: 'uid', Value: 'mk2' },
         { Name: 'firstname', Value: 'yuan' },
-      ], 
+      ],
       ['uid', 'json'],
       function (err, row) {
         should.not.exist(err);
-        row.should.have.keys([ 
+        row.should.have.keys([
           'uid',
           'json',
         ]);
@@ -719,15 +719,15 @@ describe('client.test.js', function() {
     it('should return a row some columns and not exists columns', function (done) {
       done = pedding(6, done);
 
-      client.getRow('node_ots_client_testuser', 
-      [ 
-        { Name: 'uid', Value: 'mk2' }, 
+      client.getRow('node_ots_client_testuser',
+      [
+        { Name: 'uid', Value: 'mk2' },
         { Name: 'firstname', Value: 'yuan' },
-      ], 
+      ],
       ['uid', 'json', 'notexists'],
       function (err, row) {
         should.not.exist(err);
-        row.should.have.keys([ 
+        row.should.have.keys([
           'uid',
           'json',
         ]);
@@ -736,26 +736,26 @@ describe('client.test.js', function() {
         done();
       });
 
-      client.getRow('node_ots_client_testuser', 
-      [ 
-        { Name: 'uid', Value: 'mk2' }, 
+      client.getRow('node_ots_client_testuser',
+      [
+        { Name: 'uid', Value: 'mk2' },
         { Name: 'firstname', Value: 'yuan' },
-      ], 
+      ],
       ['json', 'notexists'],
       function (err, row) {
         should.not.exist(err);
-        row.should.have.keys([ 
+        row.should.have.keys([
           'json',
         ]);
         row.json.should.equal('{ "foo": "bar" }');
         done();
       });
 
-      client.getRow('node_ots_client_testuser', 
-      [ 
-        { Name: 'uid', Value: 'mk2' }, 
+      client.getRow('node_ots_client_testuser',
+      [
+        { Name: 'uid', Value: 'mk2' },
         { Name: 'firstname', Value: 'yuan' },
-      ], 
+      ],
       ['notjson', 'notexists'],
       function (err, row) {
         should.not.exist(err);
@@ -763,11 +763,11 @@ describe('client.test.js', function() {
         done();
       });
 
-      client.getRow('node_ots_client_testuser', 
-      [ 
-        { Name: 'uid', Value: 'mk2' }, 
+      client.getRow('node_ots_client_testuser',
+      [
+        { Name: 'uid', Value: 'mk2' },
         { Name: 'firstname', Value: 'yuan' },
-      ], 
+      ],
       ['uid', 'notexists'],
       function (err, row) {
         should.not.exist(err);
@@ -775,11 +775,11 @@ describe('client.test.js', function() {
         done();
       });
 
-      client.getRow('node_ots_client_testuser', 
-      [ 
-        { Name: 'uid', Value: 'mk2' }, 
+      client.getRow('node_ots_client_testuser',
+      [
+        { Name: 'uid', Value: 'mk2' },
         { Name: 'firstname', Value: 'yuan' },
-      ], 
+      ],
       ['firstname', 'notexists'],
       function (err, row) {
         should.not.exist(err);
@@ -787,11 +787,11 @@ describe('client.test.js', function() {
         done();
       });
 
-      client.getRow('node_ots_client_testuser', 
-      [ 
-        { Name: 'uid', Value: 'mk2' }, 
+      client.getRow('node_ots_client_testuser',
+      [
+        { Name: 'uid', Value: 'mk2' },
         { Name: 'firstname', Value: 'yuan' },
-      ], 
+      ],
       ['firstname', 'uid'],
       function (err, row) {
         should.not.exist(err);
@@ -801,9 +801,9 @@ describe('client.test.js', function() {
     });
 
     it('should return null when pk not exists', function (done) {
-      client.getRow('node_ots_client_testuser', 
-      [ 
-        { Name: 'uid', Value: 'not-existskey' }, 
+      client.getRow('node_ots_client_testuser',
+      [
+        { Name: 'uid', Value: 'not-existskey' },
         { Name: 'firstname', Value: 'haha' },
       ], function (err, row) {
         should.not.exist(err);
@@ -821,7 +821,7 @@ describe('client.test.js', function() {
         // { Name: 'uid', Type: 'STRING' },
         // { Name: 'create_time', Type: 'STRING' }
         client.getRow('node_ots_client_testuser_range', [
-          { Name: 'uid_md5', Value: 'md51' }, 
+          { Name: 'uid_md5', Value: 'md51' },
           { Name: 'uid', Value: '320' },
           { Name: 'create_time', Value: '2013090' },
         ], function (err, row) {
@@ -830,11 +830,11 @@ describe('client.test.js', function() {
         });
       });
       for (var i = 0; i < 10; i++) {
-        client.putRow('node_ots_client_testuser_range', 
-        [ 
-          { Name: 'uid_md5', Value: 'md51' }, 
-          { Name: 'uid', Value: '320' }, 
-          { Name: 'create_time', Value: '201309' + i } 
+        client.putRow('node_ots_client_testuser_range',
+        [
+          { Name: 'uid_md5', Value: 'md51' },
+          { Name: 'uid', Value: '320' },
+          { Name: 'create_time', Value: '201309' + i }
         ],
         [
           { Name: 'lastname', Value: 'lastname' + i },
@@ -854,10 +854,10 @@ describe('client.test.js', function() {
 
     var nextBegin = null;
     it('should get top 6 rows, limit 6', function (done) {
-      client.getRowsByRange('node_ots_client_testuser_range', 
-        [ 
-          { Name: 'uid_md5', Value: 'md51' }, 
-          { Name: 'uid', Value: '320' }, 
+      client.getRowsByRange('node_ots_client_testuser_range',
+        [
+          { Name: 'uid_md5', Value: 'md51' },
+          { Name: 'uid', Value: '320' },
         ],
         { Name: 'create_time', Begin: ots.STR_MIN, End: ots.STR_MAX }, null, {limit: 6},
       function (err, rows) {
@@ -865,7 +865,7 @@ describe('client.test.js', function() {
         rows.should.length(6);
         for (var i = rows.length; i--; ) {
           var row = rows[i];
-          row.should.have.keys([ 
+          row.should.have.keys([
             'uid', 'uid_md5', 'lastname', 'nickname', 'age', 'price',
             'enable', 'man', 'female', 'create_time', 'modified'
           ]);
@@ -876,12 +876,12 @@ describe('client.test.js', function() {
     });
 
     it('should get 2 rows[6-8) limit 10', function (done) {
-      client.getRowsByRange('node_ots_client_testuser_range', 
+      client.getRowsByRange('node_ots_client_testuser_range',
         [
-          { Name: 'uid_md5', Value: 'md51' }, 
-          { Name: 'uid', Value: '320' }, 
-        ], 
-        { Name: 'create_time', Begin: '2013096', End: '2013098' }, ['age'], {limit: 10}, 
+          { Name: 'uid_md5', Value: 'md51' },
+          { Name: 'uid', Value: '320' },
+        ],
+        { Name: 'create_time', Begin: '2013096', End: '2013098' }, ['age'], {limit: 10},
       function (err, rows) {
         should.not.exist(err);
         rows.should.length(2);
@@ -895,12 +895,12 @@ describe('client.test.js', function() {
     });
 
     it('should get 0 rows', function (done) {
-      client.getRowsByRange('node_ots_client_testuser_range', 
+      client.getRowsByRange('node_ots_client_testuser_range',
         [
-          { Name: 'uid_md5', Value: 'md51' }, 
-          { Name: 'uid', Value: '320' }, 
-        ], 
-        { Name: 'create_time', Begin: '2013106', End: '2013108' }, ['age'], {limit: 10}, 
+          { Name: 'uid_md5', Value: 'md51' },
+          { Name: 'uid', Value: '320' },
+        ],
+        { Name: 'create_time', Begin: '2013106', End: '2013108' }, ['age'], {limit: 10},
       function (err, rows) {
         should.not.exist(err);
         rows.should.length(0);
@@ -911,7 +911,7 @@ describe('client.test.js', function() {
 
   describe('deleteRow()', function () {
     it('should delete a row', function (done) {
-      client.deleteData('node_ots_client_testuser', 
+      client.deleteData('node_ots_client_testuser',
         [
           {Name: 'uid', Value: 'mk2'},
           {Name: 'firstname', Value: 'yuan'}
@@ -969,7 +969,7 @@ describe('client.test.js', function() {
         should.not.exist(err);
         tid.should.be.a.String;
         transactionID = tid;
-        client.batchModifyData('node_ots_client_testurl', 
+        client.batchModifyData('node_ots_client_testurl',
         [
           {
             Type: 'DELETE',
@@ -1000,9 +1000,9 @@ describe('client.test.js', function() {
       var items = [];
       for (var i = 0; i < 100; i++) {
         items.push({
-          primaryKeys: [ 
-            { Name: 'uid', Value: 'testuser_multiPutRow_' + i }, 
-            { Name: 'firstname', Value: 'name' + i } 
+          primaryKeys: [
+            { Name: 'uid', Value: 'testuser_multiPutRow_' + i },
+            { Name: 'firstname', Value: 'name' + i }
           ],
           columns: [
             { Name: 'lastname', Value: 'lastname' + i },
@@ -1029,9 +1029,9 @@ describe('client.test.js', function() {
       var items = [];
       for (var i = 0; i < 1001; i++) {
         items.push({
-          primaryKeys: [ 
-            { Name: 'uid', Value: 'testuser_multiPutRow_' + i }, 
-            { Name: 'firstname', Value: 'name' + i } 
+          primaryKeys: [
+            { Name: 'uid', Value: 'testuser_multiPutRow_' + i },
+            { Name: 'firstname', Value: 'name' + i }
           ],
           columns: [
             { Name: 'lastname', Value: 'lastname' + i },
@@ -1061,9 +1061,9 @@ describe('client.test.js', function() {
       var items = [];
       for (var i = 50; i < 100; i++) {
         items.push({
-          primaryKeys: [ 
-            { Name: 'uid', Value: 'testuser_multiPutRow_' + i }, 
-            { Name: 'firstname', Value: 'name' + i } 
+          primaryKeys: [
+            { Name: 'uid', Value: 'testuser_multiPutRow_' + i },
+            { Name: 'firstname', Value: 'name' + i }
           ]
         });
       }
@@ -1079,9 +1079,9 @@ describe('client.test.js', function() {
       var items = [];
       for (var i = 0; i < 100; i++) {
         items.push({
-          primaryKeys: [ 
-            { Name: 'uid', Value: 'testuser_multiPutRow_' + i }, 
-            { Name: 'firstname', Value: 'name' + i } 
+          primaryKeys: [
+            { Name: 'uid', Value: 'testuser_multiPutRow_' + i },
+            { Name: 'firstname', Value: 'name' + i }
           ],
           columnNames: ['man', 'age']
         });
@@ -1098,9 +1098,9 @@ describe('client.test.js', function() {
       var items = [];
       for (var i = 0; i < 100; i++) {
         items.push({
-          primaryKeys: [ 
-            { Name: 'uid', Value: 'testuser_multiPutRow_' + i }, 
-            { Name: 'firstname', Value: 'name' + i } 
+          primaryKeys: [
+            { Name: 'uid', Value: 'testuser_multiPutRow_' + i },
+            { Name: 'firstname', Value: 'name' + i }
           ],
           columnNames: ['man', 'age-not-exists']
         });
@@ -1117,9 +1117,9 @@ describe('client.test.js', function() {
       var items = [];
       for (var i = 0; i < 1001; i++) {
         items.push({
-          primaryKeys: [ 
-            { Name: 'uid', Value: 'testuser_multiPutRow_' + i }, 
-            { Name: 'firstname', Value: 'name' + i } 
+          primaryKeys: [
+            { Name: 'uid', Value: 'testuser_multiPutRow_' + i },
+            { Name: 'firstname', Value: 'name' + i }
           ],
           columnNames: ['man']
         });
@@ -1141,10 +1141,10 @@ describe('client.test.js', function() {
         done();
       });
       for (var i = 0; i < 5; i++) {
-        client.putData('node_ots_client_testuser', 
-        [ 
-          { Name: 'uid', Value: 'testuser_mget2_' + i }, 
-          { Name: 'firstname', Value: 'name' + i } 
+        client.putData('node_ots_client_testuser',
+        [
+          { Name: 'uid', Value: 'testuser_mget2_' + i },
+          { Name: 'firstname', Value: 'name' + i }
         ],
         [
           { Name: 'lastname', Value: 'lastname' + i },
@@ -1166,9 +1166,9 @@ describe('client.test.js', function() {
     it('should return 5 rows and 5 empty rows with all columns', function (done) {
       var pks = [];
       for (var i = 0; i < 10; i++) {
-        pks.push([ 
-          { Name: 'uid', Value: 'testuser_mget2_' + i }, 
-          { Name: 'firstname', Value: 'name' + i } 
+        pks.push([
+          { Name: 'uid', Value: 'testuser_mget2_' + i },
+          { Name: 'firstname', Value: 'name' + i }
         ]);
       }
       client.multiGetRow('node_ots_client_testuser', pks, function (err, items) {
@@ -1197,9 +1197,9 @@ describe('client.test.js', function() {
     it('should Rows count exceeds the upper limit error', function (done) {
       var pks = [];
       for (var i = 0; i < 101; i++) {
-        pks.push([ 
-          { Name: 'uid', Value: 'testuser_' + i }, 
-          { Name: 'firstname', Value: 'name' + i } 
+        pks.push([
+          { Name: 'uid', Value: 'testuser_' + i },
+          { Name: 'firstname', Value: 'name' + i }
         ]);
       }
       client.multiGetRow('node_ots_client_testuser', pks, function (err, items) {
@@ -1213,9 +1213,9 @@ describe('client.test.js', function() {
     it('should pk error', function (done) {
       var pks = [];
       for (var i = 0; i < 2; i++) {
-        pks.push([ 
-          { Name: 'uid2', Value: 'testuser_' + i }, 
-          { Name: 'firstname', Value: 'name' + i } 
+        pks.push([
+          { Name: 'uid2', Value: 'testuser_' + i },
+          { Name: 'firstname', Value: 'name' + i }
         ]);
       }
       client.multiGetRow('node_ots_client_testuser', pks, function (err, items) {
@@ -1240,11 +1240,11 @@ describe('client.test.js', function() {
     });
 
     it('request error', function (done) {
-      _client.getRow('node_ots_client_testuser', 
-      [ 
-        { Name: 'uid', Value: 'mk2' }, 
+      _client.getRow('node_ots_client_testuser',
+      [
+        { Name: 'uid', Value: 'mk2' },
         { Name: 'firstname', Value: 'yuan' },
-      ], 
+      ],
       function (err, row) {
         should.exist(err);
         err.name.should.include('OTSConnectionTimeoutError');
@@ -1258,11 +1258,11 @@ describe('client.test.js', function() {
         lookup: {},
         resolve4: {}
       };
-      _client.getRow('node_ots_client_testuser', 
-      [ 
-        { Name: 'uid', Value: 'mk2' }, 
+      _client.getRow('node_ots_client_testuser',
+      [
+        { Name: 'uid', Value: 'mk2' },
         { Name: 'firstname', Value: 'yuan' },
-      ], 
+      ],
       function (err, row) {
         should.exist(err);
         err.name.should.include('MockError');
