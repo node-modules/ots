@@ -5,6 +5,8 @@
  * MIT Licensed
  */
 
+'use strict';
+
 /**
  * Module dependencies.
  */
@@ -48,7 +50,7 @@ describe('client.test.js', function() {
         { 'Name': 'firstname', 'Type': 'STRING' },
       ],
     }, function (err, result) {
-      ep.emit('testuser')
+      ep.emit('testuser');
     });
 
     client.createTable({
@@ -57,7 +59,7 @@ describe('client.test.js', function() {
         { 'Name': 'uid', 'Type': 'INTEGER' },
       ],
     }, function (err, result) {
-      ep.emit('testuser_bigint')
+      ep.emit('testuser_bigint');
     });
 
     client.createTable({
@@ -67,7 +69,7 @@ describe('client.test.js', function() {
         { 'Name': 'sid', 'Type': 'STRING' },
       ],
     }, function (err, result) {
-      ep.emit('testuser_relation')
+      ep.emit('testuser_relation');
     });
 
     client.createTable({
@@ -87,11 +89,11 @@ describe('client.test.js', function() {
         { 'Name': 'md5', 'Type': 'STRING' },
       ],
     }, function (err, result) {
-      ep.emit('testurl')
+      ep.emit('testurl');
     });
   });
 
-  describe('importData()', function () {
+  describe.skip('importData()', function () {
     it('should import data to a table', function (done) {
       var requests = {
         Schema: [ ['uid', 'S'], ['sid', 'S'] ],
@@ -253,7 +255,6 @@ describe('client.test.js', function() {
           should.exist(err);
           err.name.should.equal('OTSStorageObjectNotExistError');
           err.message.should.equal('Requested table group/table/view doesn\'t exist.');
-          console.log(err)
           err.url.should.include('&requestid=');
           err.url.should.include('&hostid=');
           done();
@@ -263,6 +264,38 @@ describe('client.test.js', function() {
   });
 
   describe('createTable()', function () {
+    it('should create a multi pk table', function (done) {
+      client.createTable({
+        TableName: 'node_ots_client_testuser_multi_pk',
+        PrimaryKey: [
+          { 'Name': 'uid', 'Type': 'STRING' },
+          { 'Name': 'tid', 'Type': 'INTEGER' },
+          { 'Name': 'sid', 'Type': 'INTEGER' },
+        ],
+      }, function (err, result) {
+        client.putRow('node_ots_client_testuser_multi_pk',
+          [
+            { Name: 'uid', Value: 'mk2' },
+            { Name: 'tid', Value: 123 },
+            { Name: 'sid', Value: 321 }
+          ],
+          [
+            { Name: 'firstname', Value: 'yuan' },
+            { Name: 'lastname', Value: 'feng\' ok' },
+            { Name: 'nickname', Value: '苏千' },
+            { Name: 'age', Value: 28 },
+            { Name: 'price', Value: 110.5 },
+            { Name: 'enable', Value: true },
+            { Name: 'man', Value: true },
+            { Name: 'female', Value: false },
+            { Name: 'createtime', Value: new Date().toJSON() }
+          ],
+        function (err, result) {
+          should.not.exist(err);
+          done();
+        });
+      });
+    });
 
     it('should return OTSParameterInvalidError when missing primary key', function (done) {
       client.createTable({ TableName: 'node_ots_client_test' }, function (err, result) {

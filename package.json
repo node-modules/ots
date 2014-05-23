@@ -25,12 +25,12 @@
     }
   },
   "dependencies": {
-    "cache-dns": "0.0.2",
-    "debug": "0.7.4",
-    "protobuf-ali": "0.8.7",
-    "urllib": "0.5.5",
-    "utility": "0.1.10",
-    "xml2json": "0.4.0"
+    "cache-dns": "~0.0.2",
+    "debug": "~0.8.1",
+    "protobuf-ali": "~0.8.7",
+    "urllib": "~0.5.16",
+    "utility": "~0.1.13",
+    "xml2json": "~0.4.0"
   },
   "devDependencies": {
     "ab": "*",
@@ -40,12 +40,13 @@
     "blanket": "*",
     "contributors": "*",
     "coveralls": "*",
-    "eventproxy": "0.2.6",
-    "mm": "0.1.8",
+    "eventproxy": "~0.3.1",
+    "jshint": "*",
+    "mm": "~0.2.1",
     "mocha": "*",
     "mocha-lcov-reporter": "*",
-    "pedding": "0.0.3",
-    "should": "3.1.2",
+    "pedding": "~0.0.3",
+    "should": "~3.3.1",
     "travis-cov": "*"
   },
   "license": "MIT",
