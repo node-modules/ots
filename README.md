@@ -1,4 +1,6 @@
-# OTS SDK [![Build Status](https://secure.travis-ci.org/fengmk2/ots.png)](http://travis-ci.org/fengmk2/ots) [![Coverage Status](https://coveralls.io/repos/fengmk2/ots/badge.png)](https://coveralls.io/r/fengmk2/ots)
+# OTS SDK
+
+[![Coverage Status](https://coveralls.io/repos/alibaba/ots/badge.png)](https://coveralls.io/r/alibaba/ots)
 
 [![NPM](https://nodei.co/npm/ots.png?downloads=true&stars=true)](https://nodei.co/npm/ots)
 
@@ -38,7 +40,7 @@ Using `protobuf` protocol API on `ots@0.4.0+`.
 ## Install
 
 ```bash
-$ npm install ots
+$ npm install ots --save
 
 # If you are still using XML protocol API, please use this:
 $ npm install ots@0.3.0

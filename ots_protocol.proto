@@ -1,13 +1,19 @@
-package com.aliyun.cloudservice.ots;
+package com.aliyun.cloudservice.ots2;
 
-/* common structure */
+message Error {
+    required string code = 1;
+    optional string message = 2;
+}
+
+
 enum ColumnType {
-    INF_MIN = 0;
-    INF_MAX = 1;
+    INF_MIN = 0; // only for GetRange
+    INF_MAX = 1; // only for GetRange
     INTEGER = 2;
     STRING = 3;
     BOOLEAN = 4;
     DOUBLE = 5;
+    BINARY = 6;
 }
 
 message ColumnSchema {
@@ -17,10 +23,11 @@ message ColumnSchema {
 
 message ColumnValue {
     required ColumnType type = 1;
-    optional int64 value_i = 2;
-    optional string value_s = 3;
-    optional bool value_b = 4;
-    optional double value_d = 5;
+    optional int64 v_int = 2;
+    optional string v_string = 3;
+    optional bool v_bool = 4;
+    optional double v_double = 5;
+    optional bytes v_binary = 6;
 }
 
 message Column {
@@ -29,103 +36,81 @@ message Column {
 }
 
 message Row {
-    repeated Column primary_keys = 1;
-    repeated Column columns = 2;
-}
-
-message RowPutChange {
-    enum CheckingType {
-        NO = 0;
-        UPDATE = 1;
-        INSERT = 2;
-    }
-
-    required Row row = 1;
-    required CheckingType checking_type = 2 [default = NO];
-}
-
-message RowDeleteChange {
-    repeated Column primary_keys = 1;
-    repeated string column_names = 2;
-}
-
-message ViewMeta {
-    required string view_name = 1;
-    repeated ColumnSchema primary_keys = 2;
-    repeated ColumnSchema columns = 3;
+    repeated Column primary_key_columns = 1;
+    repeated Column attribute_columns = 2;
 }
 
 message TableMeta {
     required string table_name = 1;
-    repeated ViewMeta views = 2;
-    repeated ColumnSchema primary_keys = 3;
-    optional string table_group_name = 4;
+    repeated ColumnSchema primary_key = 2;
 }
 
-message GetRowParameter {
-    required string table_name = 1;
-    repeated Column primary_keys = 2;
-    repeated string column_names = 3;
+enum RowExistenceExpectation {
+    IGNORE = 0;
+    EXPECT_EXIST = 1;
+    EXPECT_NOT_EXIST = 2;
 }
 
-message PutRowParameter {
-    required string table_name = 1;
-    required RowPutChange row_change = 2;
+message Condition {
+    required RowExistenceExpectation row_existence = 1;
 }
 
-message DeleteRowParameter {
-    required string table_name = 1;
-    required RowDeleteChange row_change = 2;
+message CapacityUnit {
+    optional int32 read = 1;
+    optional int32 write = 2;
 }
 
-message ErrorMessage {
-    required string code = 1;
-    optional string message = 2;
+message ReservedThroughputDetails {
+    required CapacityUnit capacity_unit = 1;
+    required int64 last_increase_time = 2;
+    optional int64 last_decrease_time = 3;
+    required int32 number_of_decreases_today = 4;
 }
 
-/* CreateTableGroup */
-message CreateTableGroupRequest {
-    required string table_group_name = 1;
-    required ColumnType partition_key_type = 2;
+message ReservedThroughput {
+    required CapacityUnit capacity_unit = 1;
 }
 
-// no response message
-
-/* DeleteTableGroup */
-message DeleteTableGroupRequest {
-    required string table_group_name = 1;
-}
-
-// no response message
-
-/* ListTableGroup */
-// no request message
-
-message ListTableGroupResponse {
-    repeated string table_group_names = 1;
+message ConsumedCapacity {
+    required CapacityUnit capacity_unit = 1;
 }
 
 /* CreateTable */
 message CreateTableRequest {
     required TableMeta table_meta = 1;
+    required ReservedThroughput reserved_throughput = 2;
 }
 
-// no response message
-
-/* ListTable */
-// no request message
-
-message ListTableResponse {
-    repeated string table_names = 1;
+message CreateTableResponse {
 }
 
-/* GetTableMeta */
-message GetTableMetaRequest {
+/* UpdateTable */
+
+message UpdateTableRequest {
+    required string table_name = 1;
+    required ReservedThroughput reserved_throughput = 2;
+}
+
+message UpdateTableResponse {
+    required ReservedThroughputDetails reserved_throughput_details = 1;
+}
+
+/* DescribeTable */
+message DescribeTableRequest {
     required string table_name = 1;
 }
 
-message GetTableMetaResponse {
+message DescribeTableResponse {
     required TableMeta table_meta = 1;
+    required ReservedThroughputDetails reserved_throughput_details = 2;
+}
+
+/* ListTable */
+message ListTableRequest {
+}
+
+message ListTableResponse {
+    repeated string table_names = 1;
 }
 
 /* DeleteTable */
@@ -133,130 +118,161 @@ message DeleteTableRequest {
     required string table_name = 1;
 }
 
-// no response message
-
-/* StartTransaction */
-message StartTransactionRequest {
-    required string entity_name = 1;
-    required ColumnValue partition_key_value = 2;
+message DeleteTableResponse {
 }
-
-message StartTransactionResponse {
-    required string transaction_id = 1;
-}
-
-/* AbortTransaction */
-message AbortTransactionRequest {
-    required string transaction_id = 1;
-}
-
-// no response message
-
-/* CommitTransaction */
-message CommitTransactionRequest {
-    required string transaction_id = 1;
-}
-
-// no response message
 
 /* GetRow */
 message GetRowRequest {
-    required GetRowParameter get_row_parameter = 1;
-    optional string transaction_id = 2;
+    required string table_name = 1;
+    repeated Column primary_key = 2;
+    repeated string columns_to_get = 3;
 }
 
 message GetRowResponse {
-    required string table_name = 1;
+    required ConsumedCapacity consumed = 1;
     required Row row = 2;
 }
 
-/* GetRowsByRange */
-message GetRowsByRangeRequest {
-    required string table_name= 1;
-    repeated Column primary_key_prefix = 2;
-    required string range_key_name = 3;
-    required ColumnValue range_begin = 4;
-    required ColumnValue range_end = 5;
-    repeated string column_names = 6;
-    required bool is_reverse = 7 [default = false];
-    optional uint32 limit = 8;
-    optional string next_token = 9;
-    optional string transaction_id = 10;
+/* UpdateRow */
+enum OperationType {
+    PUT = 1;
+    DELETE = 2;
 }
 
-message GetRowsByRangeResponse {
+message ColumnUpdate {
+    required OperationType type = 1;
+    required string name = 2;
+    optional ColumnValue value = 3;
+}
+
+message UpdateRowRequest {
     required string table_name = 1;
-    repeated Row rows = 2;
-    optional string next_token = 3;
+    required Condition condition = 2;
+    repeated Column primary_key = 3;
+    repeated ColumnUpdate attribute_columns = 4;
+}
+
+message UpdateRowResponse {
+    required ConsumedCapacity consumed = 1;
 }
 
 /* PutRow */
 message PutRowRequest {
-    required PutRowParameter put_row_parameter = 1;
-    optional string transaction_id = 2;
+    required string table_name = 1;
+    required Condition condition = 2;
+    repeated Column primary_key = 3;
+    repeated Column attribute_columns = 4;
 }
 
-// no response message
+message PutRowResponse {
+    required ConsumedCapacity consumed = 1;
+}
 
 /* DeleteRow */
 message DeleteRowRequest {
-    required DeleteRowParameter delete_row_parameter = 1;
-    optional string transaction_id = 2;
-}
-
-// no response message
-
-/* BatchModifyRow */
-message ModifyItem {
-    enum ModifyType {
-        PUT = 0;
-        DELETE = 1;
-    }
-
-    required ModifyType type = 1;
-    optional RowPutChange row_put_change = 2;
-    optional RowDeleteChange row_delete_change = 3;
-}
-
-message BatchModifyRowRequest {
     required string table_name = 1;
-    repeated ModifyItem modify_items = 2;
-    required string transaction_id = 3;
+    required Condition condition = 2;
+    repeated Column primary_key = 3;
 }
 
-// no response message
-
-/* MultiGetRow */
-message MultiGetRowRequest {
-    repeated GetRowParameter parameters = 1;
+message DeleteRowResponse {
+    required ConsumedCapacity consumed = 1;
 }
 
-message MultiGetRowResponseItem {
-     required bool is_succeed = 1;
-     optional ErrorMessage error = 2;
-     optional string table_name = 3;
-     optional Row row = 4;
+/* BatchGetRow */
+message RowInBatchGetRowRequest {
+    repeated Column primary_key = 1;
 }
 
-message MultiGetRowResponse {
-     repeated MultiGetRowResponseItem items = 1;
+message TableInBatchGetRowRequest {
+    required string table_name = 1;
+    repeated RowInBatchGetRowRequest rows = 2;
+    repeated string columns_to_get = 3;
 }
 
-/* MultiPutRow */
-message MultiPutRowRequest {
-    repeated PutRowParameter parameters = 1;
+message BatchGetRowRequest {
+    repeated TableInBatchGetRowRequest tables = 1;
 }
 
-message MultiPutRowResponse {
-    repeated ErrorMessage messages = 1;
+message RowInBatchGetRowResponse {
+    required bool is_ok = 1 [default = true];
+    optional Error error = 2;
+    optional ConsumedCapacity consumed = 3;
+    optional Row row = 4;
 }
 
-/* MultiDeleteRow */
-message MultiDeleteRowRequest {
-    repeated DeleteRowParameter parameters = 1;
+message TableInBatchGetRowResponse {
+    required string table_name = 1;
+    repeated RowInBatchGetRowResponse rows = 2; // same indices w.r.t. request
 }
 
-message MultiDeleteRowResponse {
-    repeated ErrorMessage messages = 1;
+message BatchGetRowResponse {
+    repeated TableInBatchGetRowResponse tables = 1; // same indices w.r.t. request
 }
 
+/* BatchWriteRow */
+message PutRowInBatchWriteRowRequest {
+    required Condition condition = 1;
+    repeated Column primary_key = 2;
+    repeated Column attribute_columns = 3;
+}
+
+message UpdateRowInBatchWriteRowRequest {
+    required Condition condition = 1;
+    repeated Column primary_key = 2;
+    repeated ColumnUpdate attribute_columns = 3;
+}
+
+message DeleteRowInBatchWriteRowRequest {
+    required Condition condition = 1;
+    repeated Column primary_key = 2;
+}
+
+message TableInBatchWriteRowRequest {
+    required string table_name = 1;
+    repeated PutRowInBatchWriteRowRequest put_rows = 2;
+    repeated UpdateRowInBatchWriteRowRequest update_rows = 3;
+    repeated DeleteRowInBatchWriteRowRequest delete_rows = 4;
+}
+
+message BatchWriteRowRequest {
+    repeated TableInBatchWriteRowRequest tables = 1; // same indices w.r.t. request
+}
+
+message RowInBatchWriteRowResponse {
+    required bool is_ok = 1 [default = true];
+    optional Error error = 2;
+    optional ConsumedCapacity consumed = 3;
+}
+
+message TableInBatchWriteRowResponse {
+    required string table_name = 1;
+    repeated RowInBatchWriteRowResponse put_rows = 2; // same indices w.r.t. request
+    repeated RowInBatchWriteRowResponse update_rows = 3; // same indices w.r.t. request
+    repeated RowInBatchWriteRowResponse delete_rows = 4; // same indices w.r.t. request
+}
+
+message BatchWriteRowResponse {
+    repeated TableInBatchWriteRowResponse tables = 1;
+}
+
+/* GetRange */
+enum Direction {
+    FORWARD = 0;
+    BACKWARD = 1;
+}
+
+message GetRangeRequest {
+    required string table_name = 1;
+    required Direction direction = 2;
+    repeated string columns_to_get = 3;
+    optional int32 limit = 4;
+    repeated Column inclusive_start_primary_key = 5; // required all PKs, possibly filled with INF_MIN/INF_MAX
+    repeated Column exclusive_end_primary_key = 6; // required all PKs, possibly filled with INF_MIN/INF_MAX
+}
+
+message GetRangeResponse {
+    required ConsumedCapacity consumed = 1;
+    repeated Column next_start_primary_key = 2; // missing means hitting the end
+    repeated Row rows = 3;
+}
