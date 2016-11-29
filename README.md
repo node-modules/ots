@@ -1,5 +1,7 @@
 # OTS SDK [![Build Status](https://secure.travis-ci.org/fengmk2/ots.png)](http://travis-ci.org/fengmk2/ots) [![Coverage Status](https://coveralls.io/repos/fengmk2/ots/badge.png)](https://coveralls.io/r/fengmk2/ots)
 
+This project no longer maintained, please use https://github.com/ali-sdk/ots2 instead.
+
 [![NPM](https://nodei.co/npm/ots.png?downloads=true&stars=true)](https://nodei.co/npm/ots)
 
 Aliyun [OTS](http://ots.aliyun.com/)(Open Table Service) SDK for [Node.js](http://nodejs.org).
